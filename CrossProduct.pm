@@ -1,0 +1,454 @@
+package Set::CrossProduct;
+# $Id$
+use strict;
+
+use subs qw();
+use vars qw( $VERSION );
+
+( $VERSION ) = q$Revision$ =~ m/ (\d+ \. \d+) /gx;
+
+=head1 NAME
+
+Set::CrossProduct - work with the cross product of two or more sets
+
+=head1 SYNOPSIS
+
+	my $iterator = Set::CrossProduct->new( ARRAY_OF_ARRAYS );
+
+	# get the next tuple
+	my $number_of_tuples = $iterator->cardinality;
+	
+	# get the next tuple
+	my $tuple            = $iterator->get;
+	
+	# move back one position
+	my $tuple            = $iterator->unget;
+	
+	# get the previous tuple without resetting
+	# the cursor (peek at it)
+	my $next_tuple       = $iterator->next;
+	
+	# get the previous tuple without resetting
+	# the cursor
+	my $last_tuple       = $iterator->previous;
+	
+	# get a random tuple
+	my $tuple            = $iterator->random;
+	
+	# in list context returns a list of all tuples
+	my @tuples           = $iterator->combinations;
+	
+	# in scalar context returns an array reference to all tuples
+	my $tuples           = $iterator->combinations;
+
+=head1 DESCRIPTION
+
+Given sets S(1), S(2), ..., S(k), each of cardinality n(1), n(2), ..., n(k)
+respectively, the cross product of the sets is the set CP of ordered
+tuples such that { <s1, s2, ..., sk> | s1 => S(1), s2 => S(2), ....
+sk => S(k). }
+
+If you do not like that description, how about:
+
+Create a list by taking one item from each array, and do that for all
+possible ways that can be done, so that the first item in the list is
+always from the first array, the second item from the second array,
+and so on.
+
+If you need to see it:
+
+	A => ( a, b, c )
+	B => ( 1, 2, 3 )
+	C => ( foo, bar )
+	
+The cross product of A and B and C, A x B x C, is the set of
+tuples shown:
+
+	( a, 1, foo )
+	( a, 1, bar )
+	( a, 2, foo )
+	( a, 2, bar )
+	( a, 3, foo )
+	( a, 3, bar )
+	( b, 1, foo )
+	( b, 1, bar )
+	( b, 2, foo )
+	( b, 2, bar )
+	( b, 3, foo )
+	( b, 3, bar )
+	( c, 1, foo )
+	( c, 1, bar )
+	( c, 2, foo )
+	( c, 2, bar )
+	( c, 3, foo )
+	( c, 3, bar )
+
+This module combines the arrays that give to it to create this 
+cross product, then allows you to access the elements of the
+cross product in sequence, or to get all of the elements at
+once.  Be warned! The cardnality of the cross product, that is,
+the number of elements in the cross product, is the product of 
+the cardinality of all of the sets.  
+
+The constructor, C<new>, gives you an iterator that you can 
+use to move around the cross product.  You can get the next
+tuple, peek at the previous or next tuples, or get a random
+tuple.  If you were inclined, you could even get all of the
+tuples at once, but that might be a very large list. This module
+lets you handle the tuples one at a time.
+
+I have found this module very useful for creating regression
+tests.  I identify all of the boundary conditions for all of
+the code branches, then choose bracketing values for each of them.
+With this module i take all of the values for each test and
+create every possibility in the hopes of exercising all of the
+code.  Of course, your use is probably more interesting. :)
+
+=head1 METHODS
+
+=head2 new( ARRAY_REF_OF_ARRAY_REFS )
+
+Given the array of arrays that represent some sets, return a 
+C<Set::CrossProduct> instance that represents the cross product
+of those sets.
+
+The single argument is an array reference that has as its
+elements other array references.  The C<new> method will
+return undef in scalar context and the empty list in list
+context if you give it something different.
+
+=cut
+
+sub new
+	{
+	my( $class, $array_ref ) = @_;
+	
+	return unless ref $array_ref eq 'ARRAY';
+	foreach my $array ( @$array_ref )
+		{
+		return unless ref $array eq 'ARRAY';
+		}
+		
+	my $self = {};
+	
+	$self->{arrays}   = $array_ref;
+	$self->{counters} = [ map { 0 }      @$array_ref ];
+	$self->{lengths}  = [ map { $#{$_} } @$array_ref ];
+	$self->{done}     = 0;
+	$self->{previous} = [];
+	$self->{ungot}    = 1;
+	
+	bless $self, $class;
+	
+	return $self;
+	}
+
+sub _increment
+	{
+	my $self = shift;
+
+	$self->{previous} = $self->{counters};
+	
+	my $tail = $#{ $self->{counters} };
+
+	COUNTERS:
+		{
+		if( $self->{counters}[$tail] == $self->{lengths}[$tail] )
+			{
+			$self->{counters}[$tail] = 0;
+			$tail--;
+
+			if( $tail == 0 	
+				and $self->{counters}[$tail] == $self->{lengths}[$tail] )
+				{
+				$self->{done}++;
+				return;
+				}
+
+			redo COUNTERS;
+			}
+			
+		$self->{counters}[$tail]++;
+		}
+		
+	return 1;
+	}
+	
+sub _decrement
+	{
+	my $self = shift;
+	
+	my $tail = $#{ $self->{counters} };
+
+	$self->{counters} = $self->_previous( $self->{counters} );
+	$self->{previous} = $self->_previous( $self->{counters} );
+		
+	return 1;
+	}
+
+sub _previous
+	{
+	my $self = shift;
+	
+	my $counters = $self->{counters};
+	
+	my $tail = $#{ $counters };
+
+	return [] unless grep { $_ } @$counters;
+	
+	COUNTERS:
+		{
+		if( $counters->[$tail] == 0 )
+			{
+			$counters->[$tail] = $self->{lengths}[$tail];
+			$tail--;
+
+			if( $tail == 0 and $counters->[$tail] == 0)
+				{
+				$counters = [ map { 0 } 0 .. $tail ];
+				last COUNTERS;
+				}
+			
+			redo COUNTERS;
+			}
+			
+		$counters->[$tail]--;
+		}
+		
+	return $counters;
+	}
+
+=head2 cardinality()
+
+Return the carnality of the cross product.  This is the number
+of tuples, which is the product of the number of elements in
+each set.
+
+Strict set theorists will realize that this isn't necessarily
+the real cardinality since some tuples may be indentical, making
+the actual cardinality smaller. 
+
+=cut
+
+sub cardinality
+	{
+	my $self = shift;
+	
+	my $product = 1;
+	
+	foreach my $length ( @{ $self->{lengths} } )
+		{
+		$product *= $length;
+		}
+			
+	return $product;
+	}
+	
+=head2 reset_cursor()
+
+Return the pointer to the first element of the cross product.
+
+=cut
+
+sub reset_cursor
+	{
+	my $self = shift;
+	
+	$self->{counters} = [ map { 0 } @{ $self->{counters} } ];
+	$self->{previous} = [];
+	$self->{ungot}    = 1;
+	
+	return 1;
+	}
+	
+=head2 get()
+
+Return the next tuple from the cross product, and move the position
+to the tuple after it.  
+
+In list context, C<get> returns the tuple as a list.  In scalar context
+C<get> returns the tuple as an array reference.
+
+If you have already gotten the last tuple in
+the cross product, then C<get> returns undef in scalar context and 
+the empty list in list context.
+
+=cut
+
+sub get
+	{
+	my $self = shift;
+	
+	return if $self->{done};
+	
+	my $array_ref = map( {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  } 
+			0 .. $#{ $self->{arrays} } );
+			
+	$self->_increment;
+	$self->{ungot} = 0;
+	
+	if( wantarray ) { return @$array_ref }
+	else            { return $array_ref  }
+	}
+
+=head2 unget()
+
+Pretend we did not get the tuple we just got.  The next
+time we get a tuple, we will get the same thing.  You
+can use this to peek at the next value and put it back
+if you do not like it.
+
+You can only do this for the previous tuple.  C<unget>
+does not do multiple levels of unget.
+
+=cut
+
+sub unget
+	{
+	my $self = shift;
+	
+	return if $self->{ungot};
+	
+	$self->{counters} = $self->{previous};
+	
+	$self->{ungot} = 1;
+	
+	return 1;
+	}
+
+=head2 next()
+
+Return the next tuple, but do not move the pointer.  This
+way you can look at the next value without affecting your
+position in the cross product.
+
+In list context, C<get> returns the tuple as a list.  In scalar context
+C<get> returns the tuple as an array reference.
+
+=cut
+
+sub next
+	{
+	my $self = shift;
+
+	my $array_ref = map( {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  } 
+			0 .. $#{ $self->{arrays} } );
+				
+	if( wantarray ) { return @$array_ref }
+	else            { return $array_ref  }
+	}
+
+=head2 previous()
+
+Return the previous tuple, but do not move the pointer.  This
+way you can look at the last value without affecting your
+position in the cross product.
+
+In list context, C<get> returns the tuple as a list.  In scalar context
+C<get> returns the tuple as an array reference.
+
+=cut
+
+sub previous
+	{
+	my $self = shift;
+
+	my $array_ref = map( {  ${ $self->{arrays}[$_] }[ $self->{previous}[$_] ]  } 
+			0 .. $#{ $self->{arrays} } );
+				
+	if( wantarray ) { return @$array_ref }
+	else            { return $array_ref  }
+	}
+
+=head2 random()
+
+Return a random tuple from the cross product.
+
+In list context, C<get> returns the tuple as a list.  In scalar context
+C<get> returns the tuple as an array reference.
+
+=cut
+
+sub random
+	{
+	my $self = shift;
+
+	my $array_ref = map( {  ${ $self->{arrays}[$_] }[ rand($self->{counters}[$_]) ]  } 
+			0 .. $#{ $self->{arrays} } );
+				
+	if( wantarray ) { return @$array_ref }
+	else            { return $array_ref  }
+	}
+
+=head2 combinations()
+
+Returns a reference to an arrray that contains all of the tuples
+of the cross product.  This can be quite large, so you might
+want to check the cardinality first.
+
+In list context, C<get> returns the tuple as a list.  In scalar context
+C<get> returns the tuple as an array reference.  However, you should
+probably always use this in scalar context except for very low
+cardnalities to avoid returning huge lists.
+
+=cut
+
+sub combinations
+	{
+	my $self = shift;
+	
+	my @array = ();
+
+	while( $self->next )
+		{
+		push @array, scalar $self->get();
+		}
+		
+	if( wantarray ) { return  @array }
+	else            { return \@array }
+	}
+
+=head1 SOURCEFORGE
+
+This module is on SourceForge at
+
+	http://www.sourceforge.net/projects/brian-d-foy
+	
+=head1 TO DO
+
+* i should check for empty sets and then figure out what to
+do with them.
+
+* it would be nice to be able to name the sets, and then access
+elements from a tuple by name, like
+
+	my $i = Set::CrossProduct->new( { 
+			Apples => [ ... ],
+			Oranges => [ ... ],
+			}
+		);
+		
+	my $tuple = $i->get;
+	
+	my $apple = $tuple->Apples;
+
+* i need to fix the cardinality method. it returns the total number
+of possibly non-unique tuples.
+
+=head1 BUGS
+
+* none that i know about
+
+=head1 AUTHOR
+
+brian d foy <bdfoy@cpan.org>
+
+=head1 COPYRIGHT
+
+Copyright 2001, brian d foy.
+
+This package falls under the same terms as Perl itself.
+
+=cut
+
+1;
