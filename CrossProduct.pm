@@ -100,7 +100,7 @@ lets you handle the tuples one at a time.
 I have found this module very useful for creating regression
 tests.  I identify all of the boundary conditions for all of
 the code branches, then choose bracketing values for each of them.
-With this module i take all of the values for each test and
+With this module I take all of the values for each test and
 create every possibility in the hopes of exercising all of the
 code.  Of course, your use is probably more interesting. :)
 
@@ -474,7 +474,7 @@ brian d foy, C<< <bdfoy@cpan.org> >>
 
 =head1 COPYRIGHT
 
-Copyright 2001-2004, brian d foy.
+Copyright 2001-2005, brian d foy.
 
 This package falls under the same terms as Perl itself.
 
