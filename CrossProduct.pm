@@ -119,6 +119,18 @@ context if you give it something different.
 
 =cut
 
+# The iterator object is a hash with these keys 
+#
+#	arrays   - holds an array ref of array refs for each list
+#	counters - the current position in each array for generating
+#		combinations
+#	lengths  - the precomputed lengths of the lists in arrays
+#	done     - true if the last combination has been fetched
+#	previous - the previous value of counters in case we want
+#		to unget something and roll back the counters
+#	ungot    - true if we just ungot something--to prevent 
+#		attempts at multiple ungets which we don't support
+	
 sub new
 	{
 	my( $class, $array_ref ) = @_;
@@ -216,8 +228,8 @@ sub _previous
 		}
 		
 	return $counters;
-	}
-
+	}	
+	
 =head2 cardinality()
 
 Return the carnality of the cross product.  This is the number
@@ -313,6 +325,10 @@ sub unget
 	
 	$self->{ungot} = 1;
 	
+	# if we just got the last element, we had set the done flag,
+	# so unset it.
+	$self->{done}  = 0;
+	
 	return 1;
 	}
 
@@ -325,12 +341,16 @@ position in the cross product.
 In list context, C<get> returns the tuple as a list.  In scalar context
 C<get> returns the tuple as an array reference.
 
+For the last combination, next() returns undef.
+
 =cut
 
 sub next
 	{
 	my $self = shift;
-
+	
+	return if $self->{done};
+	
 	my @array = map( {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  } 
 			0 .. $#{ $self->{arrays} } );
 				
@@ -399,9 +419,9 @@ sub combinations
 	
 	my @array = ();
 
-	while( $self->next )
+	while( my $ref = $self->get )
 		{
-		push @array, scalar $self->get();
+		push @array, $ref;
 		}
 		
 	if( wantarray ) { return  @array }
