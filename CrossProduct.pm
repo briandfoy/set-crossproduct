@@ -17,27 +17,27 @@ Set::CrossProduct - work with the cross product of two or more sets
 
 	# get the next tuple
 	my $number_of_tuples = $iterator->cardinality;
-	
+
 	# get the next tuple
 	my $tuple            = $iterator->get;
-	
+
 	# move back one position
 	my $tuple            = $iterator->unget;
-	
+
 	# get the previous tuple without resetting
 	# the cursor (peek at it)
 	my $next_tuple       = $iterator->next;
-	
+
 	# get the previous tuple without resetting
 	# the cursor
 	my $last_tuple       = $iterator->previous;
-	
+
 	# get a random tuple
 	my $tuple            = $iterator->random;
-	
+
 	# in list context returns a list of all tuples
 	my @tuples           = $iterator->combinations;
-	
+
 	# in scalar context returns an array reference to all tuples
 	my $tuples           = $iterator->combinations;
 
@@ -60,7 +60,7 @@ If you need to see it:
 	A => ( a, b, c )
 	B => ( 1, 2, 3 )
 	C => ( foo, bar )
-	
+
 The cross product of A and B and C, A x B x C, is the set of
 tuples shown:
 
@@ -83,14 +83,14 @@ tuples shown:
 	( c, 3, foo )
 	( c, 3, bar )
 
-This module combines the arrays that give to it to create this 
+This module combines the arrays that give to it to create this
 cross product, then allows you to access the elements of the
 cross product in sequence, or to get all of the elements at
 once.  Be warned! The cardnality of the cross product, that is,
-the number of elements in the cross product, is the product of 
-the cardinality of all of the sets.  
+the number of elements in the cross product, is the product of
+the cardinality of all of the sets.
 
-The constructor, C<new>, gives you an iterator that you can 
+The constructor, C<new>, gives you an iterator that you can
 use to move around the cross product.  You can get the next
 tuple, peek at the previous or next tuples, or get a random
 tuple.  If you were inclined, you could even get all of the
@@ -108,7 +108,7 @@ code.  Of course, your use is probably more interesting. :)
 
 =head2 new( ARRAY_REF_OF_ARRAY_REFS )
 
-Given the array of arrays that represent some sets, return a 
+Given the array of arrays that represent some sets, return a
 C<Set::CrossProduct> instance that represents the cross product
 of those sets.
 
@@ -122,7 +122,7 @@ fail.
 
 =cut
 
-# The iterator object is a hash with these keys 
+# The iterator object is a hash with these keys
 #
 #	arrays   - holds an array ref of array refs for each list
 #	counters - the current position in each array for generating
@@ -131,32 +131,32 @@ fail.
 #	done     - true if the last combination has been fetched
 #	previous - the previous value of counters in case we want
 #		to unget something and roll back the counters
-#	ungot    - true if we just ungot something--to prevent 
+#	ungot    - true if we just ungot something--to prevent
 #		attempts at multiple ungets which we don't support
-	
+
 sub new
 	{
 	my( $class, $array_ref ) = @_;
-	
+
 	return unless ref $array_ref eq 'ARRAY';
 	return unless @$array_ref > 1;
-	
+
 	foreach my $array ( @$array_ref )
 		{
 		return unless ref $array eq 'ARRAY';
 		}
-		
+
 	my $self = {};
-	
+
 	$self->{arrays}   = $array_ref;
 	$self->{counters} = [ map { 0 }      @$array_ref ];
 	$self->{lengths}  = [ map { $#{$_} } @$array_ref ];
 	$self->{done}     = 0;
 	$self->{previous} = [];
 	$self->{ungot}    = 1;
-	
+
 	bless $self, $class;
-	
+
 	return $self;
 	}
 
@@ -165,7 +165,7 @@ sub _increment
 	my $self = shift;
 
 	$self->{previous} = [ @{$self->{counters}} ]; # need a deep copy
-	
+
 	my $tail = $#{ $self->{counters} };
 
 	COUNTERS:
@@ -175,7 +175,7 @@ sub _increment
 			$self->{counters}[$tail] = 0;
 			$tail--;
 
-			if( $tail == 0 	
+			if( $tail == 0
 				and $self->{counters}[$tail] == $self->{lengths}[$tail] )
 				{
 				$self->{done}++;
@@ -184,35 +184,35 @@ sub _increment
 
 			redo COUNTERS;
 			}
-			
+
 		$self->{counters}[$tail]++;
 		}
-		
+
 	return 1;
 	}
-	
+
 sub _decrement
 	{
 	my $self = shift;
-	
+
 	my $tail = $#{ $self->{counters} };
 
 	$self->{counters} = $self->_previous( $self->{counters} );
 	$self->{previous} = $self->_previous( $self->{counters} );
-		
+
 	return 1;
 	}
 
 sub _previous
 	{
 	my $self = shift;
-	
+
 	my $counters = $self->{counters};
-	
+
 	my $tail = $#{ $counters };
 
 	return [] unless grep { $_ } @$counters;
-	
+
 	COUNTERS:
 		{
 		if( $counters->[$tail] == 0 )
@@ -225,16 +225,16 @@ sub _previous
 				$counters = [ map { 0 } 0 .. $tail ];
 				last COUNTERS;
 				}
-			
+
 			redo COUNTERS;
 			}
-			
+
 		$counters->[$tail]--;
 		}
-		
+
 	return $counters;
-	}	
-	
+	}
+
 =head2 cardinality()
 
 Return the carnality of the cross product.  This is the number
@@ -243,24 +243,24 @@ each set.
 
 Strict set theorists will realize that this isn't necessarily
 the real cardinality since some tuples may be indentical, making
-the actual cardinality smaller. 
+the actual cardinality smaller.
 
 =cut
 
 sub cardinality
 	{
 	my $self = shift;
-	
+
 	my $product = 1;
-	
+
 	foreach my $length ( @{ $self->{lengths} } )
 		{
 		$product *= ( $length + 1 );
 		}
-			
+
 	return $product;
 	}
-	
+
 =head2 reset_cursor()
 
 Return the pointer to the first element of the cross product.
@@ -270,24 +270,24 @@ Return the pointer to the first element of the cross product.
 sub reset_cursor
 	{
 	my $self = shift;
-	
+
 	$self->{counters} = [ map { 0 } @{ $self->{counters} } ];
 	$self->{previous} = [];
 	$self->{ungot}    = 1;
-	
+
 	return 1;
 	}
-	
+
 =head2 get()
 
 Return the next tuple from the cross product, and move the position
-to the tuple after it.  
+to the tuple after it.
 
 In list context, C<get> returns the tuple as a list.  In scalar context
 C<get> returns the tuple as an array reference.
 
 If you have already gotten the last tuple in
-the cross product, then C<get> returns undef in scalar context and 
+the cross product, then C<get> returns undef in scalar context and
 the empty list in list context.
 
 =cut
@@ -295,15 +295,15 @@ the empty list in list context.
 sub get
 	{
 	my $self = shift;
-	
+
 	return if $self->{done};
-	
-	my @array = map {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  } 
+
+	my @array = map {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  }
 			0 .. $#{ $self->{arrays} };
-			
+
 	$self->_increment;
 	$self->{ungot} = 0;
-	
+
 	if( wantarray ) { return  @array }
 	else            { return \@array }
 	}
@@ -323,17 +323,17 @@ does not do multiple levels of unget.
 sub unget
 	{
 	my $self = shift;
-	
+
 	return if $self->{ungot};
-	
+
 	$self->{counters} = $self->{previous};
-	
+
 	$self->{ungot} = 1;
-	
+
 	# if we just got the last element, we had set the done flag,
 	# so unset it.
 	$self->{done}  = 0;
-	
+
 	return 1;
 	}
 
@@ -353,12 +353,12 @@ For the last combination, next() returns undef.
 sub next
 	{
 	my $self = shift;
-	
+
 	return if $self->{done};
-	
-	my @array = map( {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  } 
+
+	my @array = map( {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  }
 			0 .. $#{ $self->{arrays} } );
-				
+
 	if( wantarray ) { return  @array }
 	else            { return \@array }
 	}
@@ -378,9 +378,9 @@ sub previous
 	{
 	my $self = shift;
 
-	my @array = map( {  ${ $self->{arrays}[$_] }[ $self->{previous}[$_] ]  } 
+	my @array = map( {  ${ $self->{arrays}[$_] }[ $self->{previous}[$_] ]  }
 			0 .. $#{ $self->{arrays} } );
-				
+
 	if( wantarray ) { return  @array }
 	else            { return \@array }
 	}
@@ -398,9 +398,9 @@ sub random
 	{
 	my $self = shift;
 
-	my @array = map {  ${ $self->{arrays}[$_] }[ rand($self->{counters}[$_]) ] } 
+	my @array = map {  ${ $self->{arrays}[$_] }[ rand($self->{counters}[$_]) ] }
 			0 .. $#{ $self->{arrays} };
-				
+
 	if( wantarray ) { return  @array }
 	else            { return \@array }
 	}
@@ -421,24 +421,18 @@ cardnalities to avoid returning huge lists.
 sub combinations
 	{
 	my $self = shift;
-	
+
 	my @array = ();
 
 	while( my $ref = $self->get )
 		{
 		push @array, $ref;
 		}
-		
+
 	if( wantarray ) { return  @array }
 	else            { return \@array }
 	}
 
-=head1 SOURCEFORGE
-
-This module is on SourceForge at
-
-	http://www.sourceforge.net/projects/brian-d-foy
-	
 =head1 TO DO
 
 * i should check for empty sets and then figure out what to
@@ -447,14 +441,14 @@ do with them.
 * it would be nice to be able to name the sets, and then access
 elements from a tuple by name, like
 
-	my $i = Set::CrossProduct->new( { 
+	my $i = Set::CrossProduct->new( {
 			Apples => [ ... ],
 			Oranges => [ ... ],
 			}
 		);
-		
+
 	my $tuple = $i->get;
-	
+
 	my $apple = $tuple->Apples;
 
 * i need to fix the cardinality method. it returns the total number
@@ -462,15 +456,25 @@ of possibly non-unique tuples.
 
 =head1 BUGS
 
-* none that i know about
+* none that i know about (yet)
+
+=head1 SOURCE AVAILABILITY
+
+This source is part of a SourceForge project which always has the
+latest sources in CVS, as well as all of the previous releases.
+
+	http://sourceforge.net/projects/brian-d-foy/
+
+If, for some reason, I disappear from the world, one of the other
+members of the project can shepherd this module appropriately.
 
 =head1 AUTHOR
 
-brian d foy <bdfoy@cpan.org>
+brian d foy, C<< <bdfoy@cpan.org> >>
 
 =head1 COPYRIGHT
 
-Copyright 2001, brian d foy.
+Copyright 2001-2004, brian d foy.
 
 This package falls under the same terms as Perl itself.
 
