@@ -147,7 +147,7 @@ sub _increment
 	{
 	my $self = shift;
 
-	$self->{previous} = $self->{counters};
+	$self->{previous} = [ @{$self->{counters}} ]; # need a deep copy
 	
 	my $tail = $#{ $self->{counters} };
 
@@ -238,7 +238,7 @@ sub cardinality
 	
 	foreach my $length ( @{ $self->{lengths} } )
 		{
-		$product *= $length;
+		$product *= ( $length + 1 );
 		}
 			
 	return $product;
@@ -281,14 +281,14 @@ sub get
 	
 	return if $self->{done};
 	
-	my $array_ref = map( {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  } 
-			0 .. $#{ $self->{arrays} } );
+	my @array = map {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  } 
+			0 .. $#{ $self->{arrays} };
 			
 	$self->_increment;
 	$self->{ungot} = 0;
 	
-	if( wantarray ) { return @$array_ref }
-	else            { return $array_ref  }
+	if( wantarray ) { return  @array }
+	else            { return \@array }
 	}
 
 =head2 unget()
@@ -331,11 +331,11 @@ sub next
 	{
 	my $self = shift;
 
-	my $array_ref = map( {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  } 
+	my @array = map( {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  } 
 			0 .. $#{ $self->{arrays} } );
 				
-	if( wantarray ) { return @$array_ref }
-	else            { return $array_ref  }
+	if( wantarray ) { return  @array }
+	else            { return \@array }
 	}
 
 =head2 previous()
@@ -353,11 +353,11 @@ sub previous
 	{
 	my $self = shift;
 
-	my $array_ref = map( {  ${ $self->{arrays}[$_] }[ $self->{previous}[$_] ]  } 
+	my @array = map( {  ${ $self->{arrays}[$_] }[ $self->{previous}[$_] ]  } 
 			0 .. $#{ $self->{arrays} } );
 				
-	if( wantarray ) { return @$array_ref }
-	else            { return $array_ref  }
+	if( wantarray ) { return  @array }
+	else            { return \@array }
 	}
 
 =head2 random()
@@ -373,11 +373,11 @@ sub random
 	{
 	my $self = shift;
 
-	my $array_ref = map( {  ${ $self->{arrays}[$_] }[ rand($self->{counters}[$_]) ]  } 
-			0 .. $#{ $self->{arrays} } );
+	my @array = map {  ${ $self->{arrays}[$_] }[ rand($self->{counters}[$_]) ] } 
+			0 .. $#{ $self->{arrays} };
 				
-	if( wantarray ) { return @$array_ref }
-	else            { return $array_ref  }
+	if( wantarray ) { return  @array }
+	else            { return \@array }
 	}
 
 =head2 combinations()
