@@ -117,6 +117,9 @@ elements other array references.  The C<new> method will
 return undef in scalar context and the empty list in list
 context if you give it something different.
 
+You must have at least two sets, or the constructor will
+fail.
+
 =cut
 
 # The iterator object is a hash with these keys 
@@ -136,6 +139,8 @@ sub new
 	my( $class, $array_ref ) = @_;
 	
 	return unless ref $array_ref eq 'ARRAY';
+	return unless @$array_ref > 1;
+	
 	foreach my $array ( @$array_ref )
 		{
 		return unless ref $array eq 'ARRAY';
