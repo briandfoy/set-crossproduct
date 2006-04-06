@@ -75,7 +75,7 @@ tuples shown:
 	( b, 2, foo )
 	( b, 2, bar )
 	( b, 3, foo )
-	( b, 3, bar )
+	( b, 3, bar ) 
 	( c, 1, foo )
 	( c, 1, bar )
 	( c, 2, foo )
