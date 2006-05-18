@@ -3,6 +3,10 @@
 * cleaned up the distribution, added README
 * no need to upgrade if you already have this module
 
+1.08 - Wed May 17 20:51:53 2006
+	* Updated distribution, pod coverage tests, and copyright.
+	There aren't any code changes so you don't need to upgrade.
+
 1.6 - Fri Mar 11 22:34:59 2005
 	* Added POD coverage tests, fixed issues
 	* no code changes: no need to upgrade
