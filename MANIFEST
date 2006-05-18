@@ -1,13 +1,14 @@
+Changes
 CrossProduct.pm
 Makefile.PL
 MANIFEST
-t/load.t
-t/pod.t
-t/prereq.t
-t/tuple.t
-t/next.t
-t/error.t
-t/test_manifest
-META.yml                                 Module meta-data (added by MakeMaker)
+META.yml			Module meta-data (added by MakeMaker)
 README
-Changes
+t/error.t
+t/load.t
+t/next.t
+t/pod.t
+t/pod_coverage.t
+t/prereq.t
+t/test_manifest
+t/tuple.t
