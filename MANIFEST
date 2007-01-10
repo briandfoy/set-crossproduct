@@ -1,5 +1,6 @@
 Changes
 CrossProduct.pm
+LICENSE
 Makefile.PL
 MANIFEST
 META.yml			Module meta-data (added by MakeMaker)

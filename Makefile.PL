@@ -7,6 +7,7 @@ eval "use Test::Manifest 1.14";
 WriteMakefile(
 	'NAME'         => 'Set::CrossProduct',
 	'VERSION_FROM' => 'CrossProduct.pm',
+	'LICENSE'       => 'perl',
 
 	'PREREQ_PM'    => {
 		'Test::More' => '0',
