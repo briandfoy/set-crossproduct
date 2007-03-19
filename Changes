@@ -3,6 +3,10 @@
 * cleaned up the distribution, added README
 * no need to upgrade if you already have this module
 
+1.91 - Sun Mar 18 22:51:45 2007
+	* Cleaning up dist for new SVN repository
+	* No feature changes, so no need to upgrade
+
 1.09 - Tue Jan  9 22:43:45 2007
 	* updated copyright and license info
 	* no code changes, so no need to upgrade
