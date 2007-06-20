@@ -5,7 +5,7 @@ use strict;
 use subs qw();
 use vars qw( $VERSION );
 
-( $VERSION ) = 1.91;
+( $VERSION ) = 1.92;
 #q$Revision$ =~ m/ (\d+ \. \d+) /gx;
 
 =head1 NAME
@@ -84,6 +84,14 @@ tuples shown:
 	( c, 3, foo )
 	( c, 3, bar )
 
+If one of the sets happens to be empty, the cross product is empty
+too.
+
+	A => ( a, b, c )
+	B => ( )
+	
+In this case, A x B is the empty set, so you'll get no tuples.
+
 This module combines the arrays that give to it to create this
 cross product, then allows you to access the elements of the
 cross product in sequence, or to get all of the elements at
@@ -152,9 +160,11 @@ sub new
 	$self->{arrays}   = $array_ref;
 	$self->{counters} = [ map { 0 }      @$array_ref ];
 	$self->{lengths}  = [ map { $#{$_} } @$array_ref ];
-	$self->{done}     = 0;
 	$self->{previous} = [];
 	$self->{ungot}    = 1;
+
+	$self->{done}     = grep( $_ == -1, @{ $self->{lengths} } )
+		? 1 : 0;
 
 	bless $self, $class;
 
@@ -179,7 +189,7 @@ sub _increment
 			if( $tail == 0
 				and $self->{counters}[$tail] == $self->{lengths}[$tail] )
 				{
-				$self->{done}++;
+				$self->done(1);
 				return;
 				}
 
@@ -297,7 +307,7 @@ sub get
 	{
 	my $self = shift;
 
-	return if $self->{done};
+	return if $self->done;
 
 	my @array = map {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  }
 			0 .. $#{ $self->{arrays} };
@@ -355,7 +365,7 @@ sub next
 	{
 	my $self = shift;
 
-	return if $self->{done};
+	return if $self->done;
 
 	my @array = map( {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  }
 			0 .. $#{ $self->{arrays} } );
@@ -385,6 +395,18 @@ sub previous
 	if( wantarray ) { return  @array }
 	else            { return \@array }
 	}
+
+=head2 done()
+
+Without an argument, C<done> returns true if there are no more
+combinations to fetch with C<get>. and returns false otherwise.
+
+With an argument, it acts as if there are no more arguments to fetch, no
+matter the value. If you want to start over, use C<reset_cursor> instead.
+
+=cut
+
+sub done { $_[0]->{done} = 1 if @_ > 1; $_[0]->{done} }
 
 =head2 random()
 
@@ -435,9 +457,6 @@ sub combinations
 	}
 
 =head1 TO DO
-
-* i should check for empty sets and then figure out what to
-do with them.
 
 * it would be nice to be able to name the sets, and then access
 elements from a tuple by name, like

@@ -1,10 +1,11 @@
 Changes
-lib/CrossProduct.pm
 examples/README
+lib/CrossProduct.pm
 LICENSE
 Makefile.PL
 MANIFEST
 README
+t/empty_set.t
 t/error.t
 t/load.t
 t/next.t
