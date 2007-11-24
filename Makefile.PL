@@ -20,7 +20,9 @@ WriteMakefile(
 	'PREREQ_PM'    => {
 		'Test::More' => '0',
 		},
-		
+	
+	'EXE_FILES'    => [ qw(script/cross) ],
+	
 	'MAN3PODS'     => {
 		'lib/CrossProduct.pm' => '$(INST_MAN3DIR)/Set::CrossProduct.3',
 		},
