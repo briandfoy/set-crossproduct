@@ -5,6 +5,7 @@ LICENSE
 Makefile.PL
 MANIFEST
 README
+script/cross
 t/empty_set.t
 t/error.t
 t/load.t
