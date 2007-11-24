@@ -2,11 +2,13 @@ package Set::CrossProduct;
 # $Id$
 use strict;
 
+use warnings;
+no warnings;
+
 use subs qw();
 use vars qw( $VERSION );
 
 ( $VERSION ) = 1.93;
-#q$Revision$ =~ m/ (\d+ \. \d+) /gx;
 
 =head1 NAME
 
