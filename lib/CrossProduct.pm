@@ -5,7 +5,7 @@ use strict;
 use subs qw();
 use vars qw( $VERSION );
 
-( $VERSION ) = 1.92;
+( $VERSION ) = 1.93;
 #q$Revision$ =~ m/ (\d+ \. \d+) /gx;
 
 =head1 NAME
