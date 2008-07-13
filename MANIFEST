@@ -15,3 +15,4 @@ t/pod_coverage.t
 t/prereq.t
 t/test_manifest
 t/tuple.t
+META.yml                                 Module meta-data (added by MakeMaker)
