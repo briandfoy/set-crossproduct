@@ -1,4 +1,3 @@
-# $Id$
 BEGIN {
 	@classes = qw(Set::CrossProduct);
 	}

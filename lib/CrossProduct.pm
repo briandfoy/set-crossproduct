@@ -1,5 +1,4 @@
 package Set::CrossProduct;
-# $Id$
 use strict;
 
 use warnings;
@@ -8,7 +7,7 @@ no warnings;
 use subs qw();
 use vars qw( $VERSION );
 
-( $VERSION ) = 1.93;
+$VERSION = '1.94';
 
 =head1 NAME
 
@@ -287,6 +286,7 @@ sub reset_cursor
 	$self->{counters} = [ map { 0 } @{ $self->{counters} } ];
 	$self->{previous} = [];
 	$self->{ungot}    = 1;
+	$self->{done}     = 0;
 
 	return 1;
 	}
@@ -423,7 +423,7 @@ sub random
 	{
 	my $self = shift;
 
-	my @array = map {  ${ $self->{arrays}[$_] }[ rand($self->{counters}[$_]) ] }
+	my @array = map {  ${ $self->{arrays}[$_] }[ rand(1+$self->{lengths}[$_]) ] }
 			0 .. $#{ $self->{arrays} };
 
 	if( wantarray ) { return  @array }
@@ -473,7 +473,7 @@ elements from a tuple by name, like
 
 	my $apple = $tuple->Apples;
 
-* i need to fix the cardinality method. it returns the total number
+* I need to fix the cardinality method. it returns the total number
 of possibly non-unique tuples.
 
 =head1 BUGS
@@ -482,10 +482,9 @@ of possibly non-unique tuples.
 
 =head1 SOURCE AVAILABILITY
 
-This source is part of a SourceForge project which always has the
-latest sources in CVS, as well as all of the previous releases.
+This source is in Github:
 
-	http://sourceforge.net/projects/brian-d-foy/
+	http://github.com/briandfoy/Set-CrossProduct
 
 If, for some reason, I disappear from the world, one of the other
 members of the project can shepherd this module appropriately.
@@ -496,7 +495,7 @@ brian d foy, C<< <bdfoy@cpan.org> >>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2001-2007 brian d foy.  All rights reserved.
+Copyright (c) 2001-2010 brian d foy.  All rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

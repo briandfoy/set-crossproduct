@@ -22,10 +22,10 @@
 	* Updated distribution, pod coverage tests, and copyright.
 	There aren't any code changes so you don't need to upgrade.
 
-1.6 - Fri Mar 11 22:34:59 2005
+1.06 - Fri Mar 11 22:34:59 2005
 	* Added POD coverage tests, fixed issues
 	* no code changes: no need to upgrade
 
-1.5 - Wed Sep  8 01:18:01 2004
+1.05 - Wed Sep  8 01:18:01 2004
 	* cleaned up the distribution, added README
 	* no need to upgrade if you already have this module
