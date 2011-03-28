@@ -17,7 +17,7 @@ Set::CrossProduct - work with the cross product of two or more sets
 
 	my $iterator = Set::CrossProduct->new( ARRAY_OF_ARRAYS );
 
-	# get the next tuple
+	# get the number of tuples
 	my $number_of_tuples = $iterator->cardinality;
 
 	# get the next tuple
