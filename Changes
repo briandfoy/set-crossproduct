@@ -1,4 +1,8 @@
 
+1.95 - Mon Nov 28 03:54:35 2011
+	* Fix the synopsis examples
+	* No code changes
+
 1.93 - Sat Nov 24 05:31:44 2007
 	* cleanups for the move from CVS to SVN
 	* added the cross(1) program to use this from the command
