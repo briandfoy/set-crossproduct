@@ -7,7 +7,7 @@ no warnings;
 use subs qw();
 use vars qw( $VERSION );
 
-$VERSION = '1.94';
+$VERSION = '1.95';
 
 =head1 NAME
 
