@@ -1,6 +1,6 @@
 Changes
 examples/README
-lib/CrossProduct.pm
+lib/Set/CrossProduct.pm
 LICENSE
 Makefile.PL
 MANIFEST
