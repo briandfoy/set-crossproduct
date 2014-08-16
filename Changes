@@ -1,4 +1,7 @@
 
+1.96 - Sat Aug 16 16:51:59 2014
+	* Use Test::More in tests
+
 1.95 - Mon Nov 28 03:54:35 2011
 	* Fix the synopsis examples
 	* No code changes
