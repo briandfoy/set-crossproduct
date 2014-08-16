@@ -1,10 +1,9 @@
-BEGIN {
-	@classes = qw(Set::CrossProduct);
-	}
+use Test::More 0.95;
 
-use Test::More tests => scalar @classes;
+my @classes = qw(Set::CrossProduct);
 
-foreach my $class ( @classes )
-	{
-	print "bail out! $class did not compile\n" unless use_ok( $class );
+foreach my $class ( @classes ) {
+	use_ok( $class ) or BIALOUT();
 	}
+	
+done_testing();

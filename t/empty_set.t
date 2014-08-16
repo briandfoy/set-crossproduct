@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More 'no_plan';
+use Test::More 0.95;
 
 my $Class = 'Set::CrossProduct';
 use_ok( $Class );
@@ -13,3 +13,5 @@ is( $cross->cardinality, 0, "Cardinality is zero" );
 is( $cross->done, 1, "Done is already true (good)" );
 isa_ok( $cross->combinations, ref [], "Combinations is array ref" );
 is( scalar @{$cross->combinations}, 0, "Combinations has zero elements" );
+
+done_testing();

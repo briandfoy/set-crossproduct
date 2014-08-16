@@ -1,59 +1,46 @@
-BEGIN { $| = 1; print "1..14\n"; }
-END {print "not ok 1\n" unless $loaded;}
-use Set::CrossProduct;
-$loaded = 1;
-print "ok\n";
+use Test::More 0.95;
 
-use constant     OK => "ok\n";
-use constant NOT_OK => "not ok\n";
+my $class = 'Set::CrossProduct';
+use_ok( $class );
 
 my @apples  = ('Granny Smith', 'Washington', 'Red Delicious');
 my @oranges = ('Navel', 'Florida');
 
 my $i = Set::CrossProduct->new( [ \@apples, \@oranges ] );
-print ref $i ? OK : NOT_OK;
+isa_ok( $i, $class );
 
-my $count = $i->cardinality;
-print $count == 6 ? OK : NOT_OK;
+is( $i->cardinality, 6, 'Cardinality is 6' );
 
 my $tuple = $i->get;
-print +($tuple->[0] eq $apples[0] and $tuple->[1] eq $oranges[0]) ?
-	OK : NOT_OK;
+ok( $tuple->[0] eq $apples[0] and $tuple->[1] eq $oranges[0] );
 
 $tuple = $i->next;
-print +($tuple->[0] eq $apples[0] and $tuple->[1] eq $oranges[1]) ?
-    OK : NOT_OK;
+ok( $tuple->[0] eq $apples[0] and $tuple->[1] eq $oranges[1] );
 
 $tuple = $i->get;
-print +($tuple->[0] eq $apples[0] and $tuple->[1] eq $oranges[1]) ?
-    OK : NOT_OK;
+ok( $tuple->[0] eq $apples[0] and $tuple->[1] eq $oranges[1] );
 
 $tuple = $i->previous;
-print +($tuple->[0] eq $apples[0] and $tuple->[1] eq $oranges[1]) ?
-    OK : NOT_OK;
+ok( $tuple->[0] eq $apples[0] and $tuple->[1] eq $oranges[1] );
 
 $status = $i->unget;
-print $status ? OK : NOT_OK;
+ok( $status );
 
 $tuple = $i->get;
-print +($tuple->[0] eq $apples[0] and $tuple->[1] eq $oranges[1]) ?
-    OK : NOT_OK;
+ok( $tuple->[0] eq $apples[0] and $tuple->[1] eq $oranges[1] );
 
 $tuple = $i->get;
-print +($tuple->[0] eq $apples[1] and $tuple->[1] eq $oranges[0]) ?
-    OK : NOT_OK;
+ok( $tuple->[0] eq $apples[1] and $tuple->[1] eq $oranges[0] );
 
 $tuple = $i->get;
-print +($tuple->[0] eq $apples[1] and $tuple->[1] eq $oranges[1]) ?
-    OK : NOT_OK;
+ok( $tuple->[0] eq $apples[1] and $tuple->[1] eq $oranges[1] );
 
 $tuple = $i->get;
-print +($tuple->[0] eq $apples[2] and $tuple->[1] eq $oranges[0]) ?
-    OK : NOT_OK;
+ok( $tuple->[0] eq $apples[2] and $tuple->[1] eq $oranges[0] );
 
 $tuple = $i->get;
-print +($tuple->[0] eq $apples[2] and $tuple->[1] eq $oranges[1]) ?
-    OK : NOT_OK;
+ok( $tuple->[0] eq $apples[2] and $tuple->[1] eq $oranges[1] );
 
-$tuple = $i->get;
-print defined $tuple ? NOT_OK : OK;
+ok( !( defined $i->get ), 'Next element is undefined after get' );	
+
+done_testing();

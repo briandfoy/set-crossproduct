@@ -7,7 +7,7 @@ no warnings;
 use subs qw();
 use vars qw( $VERSION );
 
-$VERSION = '1.95';
+$VERSION = '1.96';
 
 =head1 NAME
 
@@ -148,12 +148,11 @@ sub new
 	{
 	my( $class, $array_ref ) = @_;
 
-	return unless ref $array_ref eq 'ARRAY';
+	return unless ref $array_ref eq ref [];
 	return unless @$array_ref > 1;
 
-	foreach my $array ( @$array_ref )
-		{
-		return unless ref $array eq 'ARRAY';
+	foreach my $array ( @$array_ref ) {
+		return unless ref $array eq ref [];
 		}
 
 	my $self = {};
@@ -495,7 +494,7 @@ brian d foy, C<< <bdfoy@cpan.org> >>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (c) 2001-2011 brian d foy.  All rights reserved.
+Copyright (c) 2001-2014 brian d foy.  All rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

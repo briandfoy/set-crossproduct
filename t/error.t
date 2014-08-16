@@ -1,14 +1,12 @@
-BEGIN { $| = 1; print "1..2\n"; }
-END {print "not ok 1\n" unless $loaded;}
-use Set::CrossProduct;
-$loaded = 1;
-print "ok\n";
+use Test::More 0.95;
 
-use constant     OK => "ok\n";
-use constant NOT_OK => "not ok\n";
+my $class = 'Set::CrossProduct';
+use_ok( $class );
 
 my @apples  = ('Granny Smith', 'Washington', 'Red Delicious');
 my @oranges = ('Navel', 'Florida');
 
-my $i = Set::CrossProduct->new( [ \@apples ] );
-print defined $i ? NOT_OK : OK;
+my $cross = Set::CrossProduct->new( [ \@apples ] );
+ok( !( defined $cross ), 'Single array returns undef' );
+
+done_testing();

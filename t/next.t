@@ -1,35 +1,32 @@
-BEGIN { $| = 1; print "1..7\n"; }
-END {print "not ok 1\n" unless $loaded;}
-use Set::CrossProduct;
-$loaded = 1;
-print "ok\n";
+use Test::More 0.95;
 
-use constant     OK => "ok\n";
-use constant NOT_OK => "not ok\n";
+my $class = 'Set::CrossProduct';
+use_ok( $class );
 
 my @apples  = ('Granny Smith', 'Washington', 'Red Delicious');
 my @oranges = ('Navel', 'Florida');
 
 my $i = Set::CrossProduct->new( [ \@apples, \@oranges ] );
-print ref $i ? OK : NOT_OK;
+isa_ok( $i, $class );
 
 my $count = $i->cardinality;
-print $count == 6 ? OK : NOT_OK;
+is( $count, 6, 'Get back the right number of elements' );
 
-print $i->next ? OK : NOT_OK;	
+ok( defined $i->next, 'Next element is defined' );	
 
 # after the last fetch, next() should return undef
-for( ; $count > 0; $count-- )
-	{
-	my @a = $i->get();
+for( ; $count > 0; $count-- ) {
+	my @a = $i->get;
 	}
-print defined $i->next ? NOT_OK : OK;	
+ok( !(defined $i->next), 'Next element is undefined' );	
 
 # but if i unget the last element, next should return
 # the last one.
-$i->unget();
-print defined $i->next ? OK : NOT_OK;	
+$i->unget;
+ok( defined $i->next, 'Next element is defined after unget' );	
 
 # now we should be done
-my @a = $i->get();
-print defined $i->next ? NOT_OK : OK;	
+my @a = $i->get;
+ok( !( defined $i->next ), 'Next element is undefined after get' );	
+
+done_testing();
