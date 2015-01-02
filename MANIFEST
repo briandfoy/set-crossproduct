@@ -4,6 +4,7 @@ lib/Set/CrossProduct.pm
 LICENSE
 Makefile.PL
 MANIFEST
+MANIFEST.SKIP
 META.yml			Module meta-data (added by MakeMaker)
 README
 script/cross
