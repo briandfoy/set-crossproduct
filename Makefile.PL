@@ -1,13 +1,15 @@
+require 5.008;
 use strict;
 use warnings;
 
-require 5.008;
+use File::Spec::Functions qw(catfile);
 
-my $github    = 'https://github.com/briandfoy/';
-my $main_file = 'lib/Set/CrossProduct.pm';
+my $module    = 'Set::CrossProduct';
+my $github    = 'https://github.com/briandfoy/Set-CrossProduct';
+my $main_file = catfile( 'lib', split /::/, "$module.pm" );
 
 my %WriteMakefile = (
-	'NAME'          => 'Set::CrossProduct',
+	'NAME'          => $module,
 	'ABSTRACT_FROM' => $main_file,
 	'VERSION_FROM'  => $main_file,
 	'LICENSE'       => 'perl',
