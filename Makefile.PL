@@ -49,7 +49,7 @@ my %WriteMakefile = (
 			},
 		},
 	
-    clean  => { FILES    => q|Set-CrossProduct-*| },
+	clean => { FILES => "$dist-*" },
 	);
 
 sub arguments { \%WriteMakefile }
