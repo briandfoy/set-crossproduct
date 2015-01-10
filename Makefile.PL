@@ -1,10 +1,12 @@
 require 5.008;
+
+package Set::CrossProduct;
 use strict;
 use warnings;
 
 use File::Spec::Functions qw(catfile);
 
-my $module    = 'Set::CrossProduct';
+my $module    = __PACKAGE__;
 ( my $dist = $module ) =~ s/::/-/g;
 
 my $github    = 'https://github.com/briandfoy/Set-CrossProduct';
