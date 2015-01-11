@@ -1,0 +1,19 @@
+Changes
+examples/README
+lib/Set/CrossProduct.pm
+LICENSE
+Makefile.PL
+MANIFEST			This list of files
+MANIFEST.SKIP
+README.pod
+script/cross
+t/empty_set.t
+t/error.t
+t/load.t
+t/next.t
+t/pod.t
+t/pod_coverage.t
+t/prereq.t
+t/test_manifest
+t/tuple.t
+xt/changes.t
