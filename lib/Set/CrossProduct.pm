@@ -9,6 +9,8 @@ use vars qw( $VERSION );
 
 $VERSION = '1.96';
 
+=encoding UTF-8
+
 =head1 NAME
 
 Set::CrossProduct - work with the cross product of two or more sets
@@ -90,7 +92,7 @@ too.
 
 	A => ( a, b, c )
 	B => ( )
-	
+
 In this case, A x B is the empty set, so you'll get no tuples.
 
 This module combines the arrays that give to it to create this
