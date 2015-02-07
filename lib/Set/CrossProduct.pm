@@ -148,18 +148,33 @@ fail.
 
 sub new
 	{
-	my( $class, $array_ref ) = @_;
+	my( $class, $constructor_ref ) = @_;
 
-	return unless ref $array_ref eq ref [];
+	my $whatsit = ref $constructor_ref;
+
+	my $self = {};
+
+	if ($whatsit eq ref {}) {
+		($self->{labels}, $self->{arrays}) = ([], []);
+		foreach my $key (sort keys %$constructor_ref) {
+			# There is no real reason to prefer sorted, except for ease of testing.
+			push @{ $self->{labels} }, $key;
+			push @{ $self->{arrays} }, $constructor_ref->{$key};
+		}
+	} elsif ($whatsit eq ref []) {
+		$self->{arrays} = $constructor_ref;
+	} else {
+		return; # Late guard
+	}
+
+	my $array_ref = $self->{arrays};
 	return unless @$array_ref > 1;
 
 	foreach my $array ( @$array_ref ) {
 		return unless ref $array eq ref [];
 		}
 
-	my $self = {};
 
-	$self->{arrays}   = $array_ref;
 	$self->{counters} = [ map { 0 }      @$array_ref ];
 	$self->{lengths}  = [ map { $#{$_} } @$array_ref ];
 	$self->{previous} = [];
@@ -312,14 +327,34 @@ sub get
 
 	return if $self->done;
 
-	my @array = map {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  }
-			0 .. $#{ $self->{arrays} };
+	my $next_ref = $self->_find_ref('next');
 
 	$self->_increment;
 	$self->{ungot} = 0;
 
-	if( wantarray ) { return  @array }
-	else            { return \@array }
+	if( wantarray ) { return (ref $next_ref eq ref []) ? @$next_ref : %$next_ref }
+	else            { return $next_ref }
+	}
+
+sub _find_ref
+	{
+	my ($self, $which) = @_;
+
+	my $place_func =
+		  ($which eq 'next') ? sub { $self->{counters}[shift] }
+		: ($which eq 'prev') ? sub { $self->{previous}[shift] }
+		: ($which eq 'rand') ? sub { rand(1 + $self->{lengths}[shift]) }
+		:                      undef;
+
+	return unless $place_func;
+
+	my @indices = (0 .. $#{ $self->{arrays} });
+
+	if ($self->{labels}) {
+		 return +{ map {  $self->{labels}[$_] => ${ $self->{arrays}[$_] }[ $place_func->($_) ]  } @indices } }
+	else {
+		return [ map {  ${ $self->{arrays}[$_] }[ $place_func->($_) ]  } @indices ]
+	}
 	}
 
 =head2 unget()
@@ -370,11 +405,10 @@ sub next
 
 	return if $self->done;
 
-	my @array = map( {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  }
-			0 .. $#{ $self->{arrays} } );
+	my $next_ref = $self->_find_ref('next');
 
-	if( wantarray ) { return  @array }
-	else            { return \@array }
+	if( wantarray ) { return (ref $next_ref eq ref []) ? @$next_ref : %$next_ref }
+	else            { return $next_ref }
 	}
 
 =head2 previous()
@@ -392,11 +426,10 @@ sub previous
 	{
 	my $self = shift;
 
-	my @array = map( {  ${ $self->{arrays}[$_] }[ $self->{previous}[$_] ]  }
-			0 .. $#{ $self->{arrays} } );
+	my $prev_ref = $self->_find_ref('prev');
 
-	if( wantarray ) { return  @array }
-	else            { return \@array }
+	if( wantarray ) { return (ref $prev_ref eq ref []) ? @$prev_ref : %$prev_ref }
+	else            { return $prev_ref }
 	}
 
 =head2 done()
@@ -424,11 +457,10 @@ sub random
 	{
 	my $self = shift;
 
-	my @array = map {  ${ $self->{arrays}[$_] }[ rand(1+$self->{lengths}[$_]) ] }
-			0 .. $#{ $self->{arrays} };
+	my $rand_ref = $self->_find_ref('rand');
 
-	if( wantarray ) { return  @array }
-	else            { return \@array }
+	if( wantarray ) { return (ref $rand_ref eq ref []) ? @$rand_ref : %$rand_ref }
+	else            { return $rand_ref }
 	}
 
 =head2 combinations()
