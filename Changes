@@ -1,5 +1,8 @@
 Revision history for Perl module Set::CrossProduct
 
+1.96_01 2015-03-09T16:37:44Z
+	* Matt Miller implemented named sets.
+
 1.95 - 2011-11-28
 	* Fix the synopsis examples
 	* No code changes
