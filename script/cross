@@ -19,6 +19,9 @@ while( my $tuple = $iterator->get )
 	print "\n";
 	}
 	
+
+=encoding UTF-8
+
 =head1 NAME
 
 cross - output the cross product of two or more sets
@@ -26,14 +29,14 @@ cross - output the cross product of two or more sets
 =head1 SYNOPSIS
 
 	cross [-g gluestring] "item,item,item" "item,item,item" ...
-	
+
 	prompt> cross "a,b,c" "1,2,3"
 	a 1
 	a 2
 	a 3
 	b 1
 	...
-	
+
 	prompt> cross "a,b,c" "1,2,3" "x,y,z"
 	a 1 x
 	a 1 y

@@ -9,13 +9,15 @@ use vars qw( $VERSION );
 
 $VERSION = '1.96';
 
+=encoding UTF-8
+
 =head1 NAME
 
 Set::CrossProduct - work with the cross product of two or more sets
 
 =head1 SYNOPSIS
 
-	my $iterator = Set::CrossProduct->new( ARRAY_OF_ARRAYS );
+	my $iterator = Set::CrossProduct->new( (HASH||ARRAY)_REF_OF_ARRAY_REFS );
 
 	# get the number of tuples
 	my $number_of_tuples = $iterator->cardinality;
@@ -77,7 +79,7 @@ tuples shown:
 	( b, 2, foo )
 	( b, 2, bar )
 	( b, 3, foo )
-	( b, 3, bar ) 
+	( b, 3, bar )
 	( c, 1, foo )
 	( c, 1, bar )
 	( c, 2, foo )
@@ -90,13 +92,13 @@ too.
 
 	A => ( a, b, c )
 	B => ( )
-	
+
 In this case, A x B is the empty set, so you'll get no tuples.
 
 This module combines the arrays that give to it to create this
 cross product, then allows you to access the elements of the
 cross product in sequence, or to get all of the elements at
-once.  Be warned! The cardnality of the cross product, that is,
+once.  Be warned! The cardinality of the cross product, that is,
 the number of elements in the cross product, is the product of
 the cardinality of all of the sets.
 
@@ -116,14 +118,13 @@ code.  Of course, your use is probably more interesting. :)
 
 =head1 METHODS
 
-=head2 new( ARRAY_REF_OF_ARRAY_REFS )
+=head2 new( (HASH|ARRAY)_REF_OF_ARRAY_REFS )
 
-Given the array of arrays that represent some sets, return a
-C<Set::CrossProduct> instance that represents the cross product
-of those sets.
+Given arrays that represent some sets, return a C<Set::CrossProduct>
+instance that represents the cross product of those sets.
 
-The single argument is an array reference that has as its
-elements other array references.  The C<new> method will
+The single argument is a hash or array reference that has as
+its elements array references.  The C<new> method will
 return undef in scalar context and the empty list in list
 context if you give it something different.
 
@@ -146,18 +147,33 @@ fail.
 
 sub new
 	{
-	my( $class, $array_ref ) = @_;
+	my( $class, $constructor_ref ) = @_;
 
-	return unless ref $array_ref eq ref [];
+	my $whatsit = ref $constructor_ref;
+
+	my $self = {};
+
+	if ($whatsit eq ref {}) {
+		($self->{labels}, $self->{arrays}) = ([], []);
+		foreach my $key (sort keys %$constructor_ref) {
+			# There is no real reason to prefer sorted, except for ease of testing.
+			push @{ $self->{labels} }, $key;
+			push @{ $self->{arrays} }, $constructor_ref->{$key};
+		}
+	} elsif ($whatsit eq ref []) {
+		$self->{arrays} = $constructor_ref;
+	} else {
+		return; # Late guard
+	}
+
+	my $array_ref = $self->{arrays};
 	return unless @$array_ref > 1;
 
 	foreach my $array ( @$array_ref ) {
 		return unless ref $array eq ref [];
 		}
 
-	my $self = {};
 
-	$self->{arrays}   = $array_ref;
 	$self->{counters} = [ map { 0 }      @$array_ref ];
 	$self->{lengths}  = [ map { $#{$_} } @$array_ref ];
 	$self->{previous} = [];
@@ -253,7 +269,7 @@ of tuples, which is the product of the number of elements in
 each set.
 
 Strict set theorists will realize that this isn't necessarily
-the real cardinality since some tuples may be indentical, making
+the real cardinality since some tuples may be identical, making
 the actual cardinality smaller.
 
 =cut
@@ -295,8 +311,13 @@ sub reset_cursor
 Return the next tuple from the cross product, and move the position
 to the tuple after it.
 
+When the object was constructed from an array ref:
 In list context, C<get> returns the tuple as a list.  In scalar context
 C<get> returns the tuple as an array reference.
+
+When the object was constructed from a hash ref:
+In list context, C<get> returns the tuple as a hash.  In scalar context
+C<get> returns the tuple as a hash reference.
 
 If you have already gotten the last tuple in
 the cross product, then C<get> returns undef in scalar context and
@@ -310,14 +331,34 @@ sub get
 
 	return if $self->done;
 
-	my @array = map {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  }
-			0 .. $#{ $self->{arrays} };
+	my $next_ref = $self->_find_ref('next');
 
 	$self->_increment;
 	$self->{ungot} = 0;
 
-	if( wantarray ) { return  @array }
-	else            { return \@array }
+	if( wantarray ) { return (ref $next_ref eq ref []) ? @$next_ref : %$next_ref }
+	else            { return $next_ref }
+	}
+
+sub _find_ref
+	{
+	my ($self, $which) = @_;
+
+	my $place_func =
+		  ($which eq 'next') ? sub { $self->{counters}[shift] }
+		: ($which eq 'prev') ? sub { $self->{previous}[shift] }
+		: ($which eq 'rand') ? sub { rand(1 + $self->{lengths}[shift]) }
+		:                      undef;
+
+	return unless $place_func;
+
+	my @indices = (0 .. $#{ $self->{arrays} });
+
+	if ($self->{labels}) {
+		 return +{ map {  $self->{labels}[$_] => ${ $self->{arrays}[$_] }[ $place_func->($_) ]  } @indices } }
+	else {
+		return [ map {  ${ $self->{arrays}[$_] }[ $place_func->($_) ]  } @indices ]
+	}
 	}
 
 =head2 unget()
@@ -355,10 +396,15 @@ Return the next tuple, but do not move the pointer.  This
 way you can look at the next value without affecting your
 position in the cross product.
 
-In list context, C<get> returns the tuple as a list.  In scalar context
-C<get> returns the tuple as an array reference.
+When the object was constructed from an array ref:
+In list context, C<next> returns the tuple as a list.  In scalar context
+C<next> returns the tuple as an array reference.
 
-For the last combination, next() returns undef.
+When the object was constructed from a hash ref:
+In list context, C<next> returns the tuple as a hash.  In scalar context
+C<next> returns the tuple as a hash reference.
+
+For the last combination, C<next> returns undef.
 
 =cut
 
@@ -368,11 +414,10 @@ sub next
 
 	return if $self->done;
 
-	my @array = map( {  ${ $self->{arrays}[$_] }[ $self->{counters}[$_] ]  }
-			0 .. $#{ $self->{arrays} } );
+	my $next_ref = $self->_find_ref('next');
 
-	if( wantarray ) { return  @array }
-	else            { return \@array }
+	if( wantarray ) { return (ref $next_ref eq ref []) ? @$next_ref : %$next_ref }
+	else            { return $next_ref }
 	}
 
 =head2 previous()
@@ -381,8 +426,13 @@ Return the previous tuple, but do not move the pointer.  This
 way you can look at the last value without affecting your
 position in the cross product.
 
-In list context, C<get> returns the tuple as a list.  In scalar context
-C<get> returns the tuple as an array reference.
+When the object was constructed from an array ref:
+In list context, C<previous> returns the tuple as a list.  In scalar context
+C<previous> returns the tuple as an array reference.
+
+When the object was constructed from a hash ref:
+In list context, C<previous> returns the tuple as a hash.  In scalar context
+C<previous> returns the tuple as a hash reference.
 
 =cut
 
@@ -390,17 +440,16 @@ sub previous
 	{
 	my $self = shift;
 
-	my @array = map( {  ${ $self->{arrays}[$_] }[ $self->{previous}[$_] ]  }
-			0 .. $#{ $self->{arrays} } );
+	my $prev_ref = $self->_find_ref('prev');
 
-	if( wantarray ) { return  @array }
-	else            { return \@array }
+	if( wantarray ) { return (ref $prev_ref eq ref []) ? @$prev_ref : %$prev_ref }
+	else            { return $prev_ref }
 	}
 
 =head2 done()
 
 Without an argument, C<done> returns true if there are no more
-combinations to fetch with C<get>. and returns false otherwise.
+combinations to fetch with C<get> and returns false otherwise.
 
 With an argument, it acts as if there are no more arguments to fetch, no
 matter the value. If you want to start over, use C<reset_cursor> instead.
@@ -413,8 +462,13 @@ sub done { $_[0]->{done} = 1 if @_ > 1; $_[0]->{done} }
 
 Return a random tuple from the cross product.
 
-In list context, C<get> returns the tuple as a list.  In scalar context
-C<get> returns the tuple as an array reference.
+When the object was constructed from an array ref:
+In list context, C<random> returns the tuple as a list.  In scalar context
+C<random> returns the tuple as an array reference.
+
+When the object was constructed from a hash ref:
+In list context, C<random> returns the tuple as a hash.  In scalar context
+C<random> returns the tuple as an array reference.
 
 =cut
 
@@ -422,23 +476,20 @@ sub random
 	{
 	my $self = shift;
 
-	my @array = map {  ${ $self->{arrays}[$_] }[ rand(1+$self->{lengths}[$_]) ] }
-			0 .. $#{ $self->{arrays} };
+	my $rand_ref = $self->_find_ref('rand');
 
-	if( wantarray ) { return  @array }
-	else            { return \@array }
+	if( wantarray ) { return (ref $rand_ref eq ref []) ? @$rand_ref : %$rand_ref }
+	else            { return $rand_ref }
 	}
 
 =head2 combinations()
 
-Returns a reference to an arrray that contains all of the tuples
+Returns a reference to an array that contains all of the tuples
 of the cross product.  This can be quite large, so you might
 want to check the cardinality first.
 
-In list context, C<get> returns the tuple as a list.  In scalar context
-C<get> returns the tuple as an array reference.  However, you should
-probably always use this in scalar context except for very low
-cardnalities to avoid returning huge lists.
+You should probably always use this in scalar context except for
+very low cardinalities to avoid huge return values.
 
 =cut
 
@@ -458,19 +509,6 @@ sub combinations
 	}
 
 =head1 TO DO
-
-* it would be nice to be able to name the sets, and then access
-elements from a tuple by name, like
-
-	my $i = Set::CrossProduct->new( {
-			Apples => [ ... ],
-			Oranges => [ ... ],
-			}
-		);
-
-	my $tuple = $i->get;
-
-	my $apple = $tuple->Apples;
 
 * I need to fix the cardinality method. it returns the total number
 of possibly non-unique tuples.
