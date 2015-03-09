@@ -3,7 +3,7 @@ pod.t
 pod_coverage.t
 #prereq.t
 tuple.t
-tuple_hr.t
+named_sets.t
 next.t
 error.t
 empty_set.t
