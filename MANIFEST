@@ -1,5 +1,6 @@
 Changes
 examples/README
+INSTALL.SKIP
 lib/Set/CrossProduct.pm
 LICENSE
 Makefile.PL
