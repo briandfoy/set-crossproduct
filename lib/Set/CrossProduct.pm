@@ -504,6 +504,26 @@ sub combinations
 	my $self = shift;
 
 	my @array = ();
+* I'd also like to do something like this:
+
+	use Set::CrossProduct qw(setmap);
+
+	# use setmap with an existing Set::CrossProduct object
+	my @array = setmap { ... code ... } $iterator;
+
+	# use setmap with unnamed arrays
+	my @array = setmap { [ $_[0], $_[1] ] }
+		key => ARRAYREF, key2 => ARRAYREF;
+
+	# use setmap with named arrays
+	my @array = setmap { [ $key1, $key2 ] }
+		key => ARRAYREF, key2 => ARRAYREF;
+
+	# call apply() with a coderef. If the object had labels
+	# (constructed with a hash), you can use those labels in
+	# the coderef.
+	$set->apply( CODEREF );
+
 
 	while( my $ref = $self->get )
 		{
