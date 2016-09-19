@@ -2,7 +2,8 @@
 
 =encoding utf8
 
-=for HTML <a href="https://travis-ci.org/briandfoy/set-crossproduct"><img src="https://travis-ci.org/briandfoy/set-crossproduct.svg?branch=master"></a>
+
+=for HTML <a href="https://travis-ci.org/briandfoy/Set-CrossProduct"><img src="https://travis-ci.org/briandfoy/Set-CrossProduct.svg?branch=master"></a>
 
 =for HTML
 <a href='https://coveralls.io/github/briandfoy/set-crossproduct?branch=master'><img src='https://coveralls.io/repos/briandfoy/set-crossproduct/badge.svg?branch=master&service=github' alt='Coverage Status' /></a>
