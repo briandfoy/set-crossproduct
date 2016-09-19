@@ -7,7 +7,7 @@ no warnings;
 use subs qw();
 use vars qw( $VERSION );
 
-$VERSION = '2.000_01';
+$VERSION = '2.000_02';
 
 =encoding utf8
 
@@ -184,8 +184,8 @@ sub new {
 
 	if( $ref_type eq ref {} ) {
 		$self->{labeled} = 1;
-		$self->{labels}  = [ keys   %$constructor_ref ];
-		$self->{arrays}  = [ values %$constructor_ref ];
+		$self->{labels}  = [ sort keys %$constructor_ref ];
+		$self->{arrays}  = [ @$constructor_ref{ sort keys %$constructor_ref } ];
 		}
 	elsif( $ref_type eq ref [] ) {
 		$self->{labeled} = 1;
