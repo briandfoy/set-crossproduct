@@ -9,7 +9,7 @@ use vars qw( $VERSION );
 
 $VERSION = '2.000_01';
 
-=encoding UTF-8
+=encoding utf8
 
 =head1 NAME
 
