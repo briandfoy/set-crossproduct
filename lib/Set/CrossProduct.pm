@@ -17,7 +17,11 @@ Set::CrossProduct - work with the cross product of two or more sets
 
 =head1 SYNOPSIS
 
-	my $iterator = Set::CrossProduct->new( (HASH||ARRAY)_REF_OF_ARRAY_REFS );
+	# unlabeled sets
+	my $iterator = Set::CrossProduct->new( ARRAY_OF_ARRAYS );
+
+	# or labeled sets where hash keys are the set names
+	my $iterator = Set::CrossProduct->new( HASH_OF_ARRAYS );
 
 	# get the number of tuples
 	my $number_of_tuples = $iterator->cardinality;
@@ -44,6 +48,7 @@ Set::CrossProduct - work with the cross product of two or more sets
 
 	# in scalar context returns an array reference to all tuples
 	my $tuples           = $iterator->combinations;
+
 
 =head1 DESCRIPTION
 
@@ -98,44 +103,69 @@ In this case, A x B is the empty set, so you'll get no tuples.
 This module combines the arrays that give to it to create this
 cross product, then allows you to access the elements of the
 cross product in sequence, or to get all of the elements at
-once.  Be warned! The cardinality of the cross product, that is,
+once. Be warned! The cardinality of the cross product, that is,
 the number of elements in the cross product, is the product of
 the cardinality of all of the sets.
 
 The constructor, C<new>, gives you an iterator that you can
-use to move around the cross product.  You can get the next
+use to move around the cross product. You can get the next
 tuple, peek at the previous or next tuples, or get a random
-tuple.  If you were inclined, you could even get all of the
+tuple. If you were inclined, you could even get all of the
 tuples at once, but that might be a very large list. This module
 lets you handle the tuples one at a time.
 
 I have found this module very useful for creating regression
-tests.  I identify all of the boundary conditions for all of
+tests. I identify all of the boundary conditions for all of
 the code branches, then choose bracketing values for each of them.
 With this module I take all of the values for each test and
 create every possibility in the hopes of exercising all of the
-code.  Of course, your use is probably more interesting. :)
+code. Of course, your use is probably more interesting. :)
 
 =head1 METHODS
 
-=head2 new( (HASH|ARRAY)_REF_OF_ARRAY_REFS )
+=over 4
+
+=item * new( [ [ ... ], [ ... ] ])
+
+=item * new( { LABEL => [ ... ], LABEL2 => [ ... ] } )
 
 Given arrays that represent some sets, return a C<Set::CrossProduct>
 instance that represents the cross product of those sets.
 
-The single argument is a hash or array reference that has as
-its elements array references.  The C<new> method will
-return undef in scalar context and the empty list in list
-context if you give it something different.
+You can create the sets in two different ways: unlabeled and labeled sets.
 
-You must have at least two sets, or the constructor will
-fail.
+For unlabeled sets, you don't give them names. You rely on position. To
+create this, pass an array of arrays:
+
+	my $unlabeled = Set::CrossProduct->new( [
+		[ qw(1 2 3) ],
+		[ qw(a b c) ],
+		[ qw(! @ $) ],
+		] );
+
+When you call C<next>, you get an array ref where the positions in the
+tuple correspond to the position of the sets you gave C<new>:
+
+	my $tuple = $unlabeled->next;   #  [ qw(1 a !) ]
+
+For labeled sets, you want to give each set a name. When you ask for a tuple,
+you get a hash reference with the labels you choose:
+
+	my $labeled = Set::CrossProduct->new( {
+		number => [ qw(1 2 3) ],
+		letter => [ qw(a b c) ],
+		symbol => [ qw(! @ $) ],
+		} );
+
+	my $tuple = $labeled->next;   #  { number => 1, letter => 'a', symbol => '!' }
 
 =cut
 
 # The iterator object is a hash with these keys
 #
 #	arrays   - holds an array ref of array refs for each list
+#   labels   - the names of the set, if applicable
+#   labeled  - boolean to note if the sets are labeled or not
 #	counters - the current position in each array for generating
 #		combinations
 #	lengths  - the precomputed lengths of the lists in arrays
@@ -148,22 +178,22 @@ fail.
 sub new {
 	my( $class, $constructor_ref ) = @_;
 
-	my $whatsit = ref $constructor_ref;
+	my $ref_type = ref $constructor_ref;
 
 	my $self = {};
 
-	if( $whatsit eq ref {} ) {
-		($self->{labels}, $self->{arrays}) = ([], []);
-		foreach my $key (sort keys %$constructor_ref) {
-			# There is no real reason to prefer sorted, except for ease of testing.
-			push @{ $self->{labels} }, $key;
-			push @{ $self->{arrays} }, $constructor_ref->{$key};
+	if( $ref_type eq ref {} ) {
+		$self->{labeled} = 1;
+		$self->{labels}  = [ keys   %$constructor_ref ];
+		$self->{arrays}  = [ values %$constructor_ref ];
 		}
-	} elsif ($whatsit eq ref []) {
-		$self->{arrays} = $constructor_ref;
-	} else {
-		return; # Late guard
-	}
+	elsif( $ref_type eq ref [] ) {
+		$self->{labeled} = 1;
+		$self->{arrays}  = $constructor_ref;
+		}
+	else {
+		return;
+		}
 
 	my $array_ref = $self->{arrays};
 	return unless @$array_ref > 1;
@@ -172,20 +202,12 @@ sub new {
 		return unless ref $array eq ref [];
 		}
 
-
 	$self->{counters} = [ map { 0 }      @$array_ref ];
 	$self->{lengths}  = [ map { $#{$_} } @$array_ref ];
 	$self->{previous} = [];
 	$self->{ungot}    = 1;
 
 	$self->{done}     = grep( $_ == -1, @{ $self->{lengths} } )
-			}
-			}
-			}
-			}
-			}
-			}
-			}
 		? 1 : 0;
 
 	bless $self, $class;
@@ -193,24 +215,20 @@ sub new {
 	return $self;
 	}
 
-sub _increment
-	{
+sub _increment {
 	my $self = shift;
 
 	$self->{previous} = [ @{$self->{counters}} ]; # need a deep copy
 
 	my $tail = $#{ $self->{counters} };
 
-	COUNTERS:
-		{
-		if( $self->{counters}[$tail] == $self->{lengths}[$tail] )
-			{
+	COUNTERS: {
+		if( $self->{counters}[$tail] == $self->{lengths}[$tail] ) {
 			$self->{counters}[$tail] = 0;
 			$tail--;
 
 			if( $tail == 0
-				and $self->{counters}[$tail] == $self->{lengths}[$tail] )
-				{
+				and $self->{counters}[$tail] == $self->{lengths}[$tail] ) {
 				$self->done(1);
 				return;
 				}
@@ -224,8 +242,7 @@ sub _increment
 	return 1;
 	}
 
-sub _decrement
-	{
+sub _decrement {
 	my $self = shift;
 
 	my $tail = $#{ $self->{counters} };
@@ -236,8 +253,7 @@ sub _decrement
 	return 1;
 	}
 
-sub _previous
-	{
+sub _previous {
 	my $self = shift;
 
 	my $counters = $self->{counters};
@@ -246,15 +262,12 @@ sub _previous
 
 	return [] unless grep { $_ } @$counters;
 
-	COUNTERS:
-		{
-		if( $counters->[$tail] == 0 )
-			{
+	COUNTERS: {
+		if( $counters->[$tail] == 0 ) {
 			$counters->[$tail] = $self->{lengths}[$tail];
 			$tail--;
 
-			if( $tail == 0 and $counters->[$tail] == 0)
-				{
+			if( $tail == 0 and $counters->[$tail] == 0) {
 				$counters = [ map { 0 } 0 .. $tail ];
 				last COUNTERS;
 				}
@@ -268,7 +281,17 @@ sub _previous
 	return $counters;
 	}
 
-=head2 cardinality()
+=item * labeled()
+
+Return true if the sets are labeled (i.e. you made the object from
+a hash ref). Returns false otherwise. You might use this to figure out
+what sort of value C<get> will return.
+
+=cut
+
+sub labeled { !! $_[0]->{labeled} }
+
+=item * cardinality()
 
 Return the carnality of the cross product.  This is the number
 of tuples, which is the product of the number of elements in
@@ -280,28 +303,25 @@ the actual cardinality smaller.
 
 =cut
 
-sub cardinality
-	{
+sub cardinality {
 	my $self = shift;
 
 	my $product = 1;
 
-	foreach my $length ( @{ $self->{lengths} } )
-		{
+	foreach my $length ( @{ $self->{lengths} } ) {
 		$product *= ( $length + 1 );
 		}
 
 	return $product;
 	}
 
-=head2 reset_cursor()
+=item * reset_cursor()
 
 Return the pointer to the first element of the cross product.
 
 =cut
 
-sub reset_cursor
-	{
+sub reset_cursor {
 	my $self = shift;
 
 	$self->{counters} = [ map { 0 } @{ $self->{counters} } ];
@@ -312,27 +332,24 @@ sub reset_cursor
 	return 1;
 	}
 
-=head2 get()
+=item * get()
 
 Return the next tuple from the cross product, and move the position
-to the tuple after it.
-
-When the object was constructed from an array ref:
-In list context, C<get> returns the tuple as a list.  In scalar context
-C<get> returns the tuple as an array reference.
-
-When the object was constructed from a hash ref:
-In list context, C<get> returns the tuple as a hash.  In scalar context
-C<get> returns the tuple as a hash reference.
-
-If you have already gotten the last tuple in
+to the tuple after it. If you have already gotten the last tuple in
 the cross product, then C<get> returns undef in scalar context and
 the empty list in list context.
 
+What you get back depends on how you made the constructor.
+
+For unlabeled sets, you get back an array reference in scalar context
+or a list in list context:
+
+For labeled sets, you get back a hash reference in scalar context or a
+list of key-value pairs in list context.
+
 =cut
 
-sub get
-	{
+sub get {
 	my $self = shift;
 
 	return if $self->done;
@@ -346,8 +363,7 @@ sub get
 	else            { return $next_ref }
 	}
 
-sub _find_ref
-	{
+sub _find_ref {
 	my ($self, $which) = @_;
 
 	my $place_func =
@@ -364,23 +380,21 @@ sub _find_ref
 		 return +{ map {  $self->{labels}[$_] => ${ $self->{arrays}[$_] }[ $place_func->($_) ]  } @indices } }
 	else {
 		return [ map {  ${ $self->{arrays}[$_] }[ $place_func->($_) ]  } @indices ]
+		}
 	}
-	}
 
-=head2 unget()
+=item * unget()
 
-Pretend we did not get the tuple we just got.  The next
-time we get a tuple, we will get the same thing.  You
-can use this to peek at the next value and put it back
-if you do not like it.
+Pretend we did not get the tuple we just got.  The next time we get a
+tuple, we will get the same thing.  You can use this to peek at the
+next value and put it back if you do not like it.
 
-You can only do this for the previous tuple.  C<unget>
-does not do multiple levels of unget.
+You can only do this for the previous tuple.  C<unget> does not do
+multiple levels of unget.
 
 =cut
 
-sub unget
-	{
+sub unget {
 	my $self = shift;
 
 	return if $self->{ungot};
@@ -396,26 +410,14 @@ sub unget
 	return 1;
 	}
 
-=head2 next()
+=item * next()
 
-Return the next tuple, but do not move the pointer.  This
-way you can look at the next value without affecting your
-position in the cross product.
-
-When the object was constructed from an array ref:
-In list context, C<next> returns the tuple as a list.  In scalar context
-C<next> returns the tuple as an array reference.
-
-When the object was constructed from a hash ref:
-In list context, C<next> returns the tuple as a hash.  In scalar context
-C<next> returns the tuple as a hash reference.
-
-For the last combination, C<next> returns undef.
+Like C<get>, but does not move the pointer.  This way you can look at
+the next tuple without affecting your position in the cross product.
 
 =cut
 
-sub next
-	{
+sub next {
 	my $self = shift;
 
 	return if $self->done;
@@ -426,24 +428,14 @@ sub next
 	else            { return $next_ref }
 	}
 
-=head2 previous()
+=item * previous()
 
-Return the previous tuple, but do not move the pointer.  This
-way you can look at the last value without affecting your
-position in the cross product.
-
-When the object was constructed from an array ref:
-In list context, C<previous> returns the tuple as a list.  In scalar context
-C<previous> returns the tuple as an array reference.
-
-When the object was constructed from a hash ref:
-In list context, C<previous> returns the tuple as a hash.  In scalar context
-C<previous> returns the tuple as a hash reference.
+Like C<get>, but does not move the pointer.  This way you can look at
+the previous tuple without affecting your position in the cross product.
 
 =cut
 
-sub previous
-	{
+sub previous {
 	my $self = shift;
 
 	my $prev_ref = $self->_find_ref('prev');
@@ -452,7 +444,7 @@ sub previous
 	else            { return $prev_ref }
 	}
 
-=head2 done()
+=item * done()
 
 Without an argument, C<done> returns true if there are no more
 combinations to fetch with C<get> and returns false otherwise.
@@ -464,22 +456,14 @@ matter the value. If you want to start over, use C<reset_cursor> instead.
 
 sub done { $_[0]->{done} = 1 if @_ > 1; $_[0]->{done} }
 
-=head2 random()
+=item * random()
 
-Return a random tuple from the cross product.
-
-When the object was constructed from an array ref:
-In list context, C<random> returns the tuple as a list.  In scalar context
-C<random> returns the tuple as an array reference.
-
-When the object was constructed from a hash ref:
-In list context, C<random> returns the tuple as a hash.  In scalar context
-C<random> returns the tuple as an array reference.
+Return a random tuple from the cross product. The return value is the
+same as C<get>.
 
 =cut
 
-sub random
-	{
+sub random {
 	my $self = shift;
 
 	my $rand_ref = $self->_find_ref('rand');
@@ -488,22 +472,38 @@ sub random
 	else            { return $rand_ref }
 	}
 
-=head2 combinations()
+=item * combinations()
 
 Returns a reference to an array that contains all of the tuples
 of the cross product.  This can be quite large, so you might
-want to check the cardinality first.
+want to check the cardinality first. The array elements are the
+return values for C<get>.
 
 You should probably always use this in scalar context except for
 very low cardinalities to avoid huge return values.
 
+=back
+
 =cut
 
-sub combinations
-	{
+sub combinations {
 	my $self = shift;
 
 	my @array = ();
+
+	while( my $ref = $self->get ) {
+		push @array, $ref;
+		}
+
+	if( wantarray ) { return  @array }
+	else            { return \@array }
+	}
+
+=head1 TO DO
+
+* I need to fix the cardinality method. it returns the total number
+of possibly non-unique tuples.
+
 * I'd also like to do something like this:
 
 	use Set::CrossProduct qw(setmap);
@@ -523,21 +523,6 @@ sub combinations
 	# (constructed with a hash), you can use those labels in
 	# the coderef.
 	$set->apply( CODEREF );
-
-
-	while( my $ref = $self->get )
-		{
-		push @array, $ref;
-		}
-
-	if( wantarray ) { return  @array }
-	else            { return \@array }
-	}
-
-=head1 TO DO
-
-* I need to fix the cardinality method. it returns the total number
-of possibly non-unique tuples.
 
 =head1 BUGS
 
