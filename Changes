@@ -13,8 +13,7 @@ Revision history for Perl module Set::CrossProduct
 
 1.93 - 2007-11-24
 	* cleanups for the move from CVS to SVN
-	* added the cross(1) program to use this from the command
-	line
+	* added the cross(1) program to use this from the command line
 	* now requires Perl 5.006
 
 1.92 - 2007-06-20
@@ -32,7 +31,7 @@ Revision history for Perl module Set::CrossProduct
 
 1.08 - 2006-05-17
 	* Updated distribution, pod coverage tests, and copyright.
-	There aren't any code changes so you don't need to upgrade.
+	* There aren't any code changes so you don't need to upgrade.
 
 1.06 - 2005-03-11
 	* Added POD coverage tests, fixed issues
