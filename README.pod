@@ -5,10 +5,9 @@
 
 =for HTML <a href="https://travis-ci.org/briandfoy/Set-CrossProduct"><img src="https://travis-ci.org/briandfoy/Set-CrossProduct.svg?branch=master"></a>
 
-=for HTML
-<a href='https://coveralls.io/github/briandfoy/set-crossproduct?branch=master'><img src='https://coveralls.io/repos/briandfoy/set-crossproduct/badge.svg?branch=master&service=github' alt='Coverage Status' /></a>
+=for HTML <a href='https://coveralls.io/github/briandfoy/Set-CrossProduct?branch=master'><img src='https://coveralls.io/repos/github/briandfoy/Set-CrossProduct/badge.svg?branch=master' alt='Coverage Status' /></a>
 
-=for HTML <a href="https://github.com/briandfoy/set-crossproduct/blob/master/LICENSE"><img src="https://img.shields.io/cpan/l/Set-CrossProduct.svg" /></a>
+=for HTML <a href="https://github.com/briandfoy/Set-Crossproduct/blob/master/LICENSE"><img src="https://img.shields.io/cpan/l/Set-CrossProduct.svg" /></a>
 
 =for HTML <a href="http://www.metacpan.org/module/Set::CrossProduct"><img src="https://img.shields.io/cpan/v/Set-CrossProduct.svg" /></A>
 
