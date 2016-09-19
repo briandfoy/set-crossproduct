@@ -7,7 +7,7 @@ no warnings;
 use subs qw();
 use vars qw( $VERSION );
 
-$VERSION = '1.96_01';
+$VERSION = '2.000_01';
 
 =encoding UTF-8
 
@@ -145,15 +145,14 @@ fail.
 #	ungot    - true if we just ungot something--to prevent
 #		attempts at multiple ungets which we don't support
 
-sub new
-	{
+sub new {
 	my( $class, $constructor_ref ) = @_;
 
 	my $whatsit = ref $constructor_ref;
 
 	my $self = {};
 
-	if ($whatsit eq ref {}) {
+	if( $whatsit eq ref {} ) {
 		($self->{labels}, $self->{arrays}) = ([], []);
 		foreach my $key (sort keys %$constructor_ref) {
 			# There is no real reason to prefer sorted, except for ease of testing.
@@ -180,6 +179,13 @@ sub new
 	$self->{ungot}    = 1;
 
 	$self->{done}     = grep( $_ == -1, @{ $self->{lengths} } )
+			}
+			}
+			}
+			}
+			}
+			}
+			}
 		? 1 : 0;
 
 	bless $self, $class;
