@@ -1,5 +1,8 @@
 Revision history for Perl module Set::CrossProduct
 
+2.001 2016-09-22T15:47:56Z
+	* Update to stable version.
+
 2.000_02 2016-09-19T20:16:21Z
 	* Fix a test regression with named sets
 	* RT 117962 (https://rt.cpan.org/Ticket/Display.html?id=117962)
