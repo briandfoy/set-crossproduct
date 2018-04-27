@@ -542,7 +542,7 @@ Matt Miller implemented the named sets feature.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright © 2001-2016, brian d foy <bdfoy@cpan.org>. All rights reserved.
+Copyright © 2001-2018, brian d foy <bdfoy@cpan.org>. All rights reserved.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the Artistic License 2.0.
