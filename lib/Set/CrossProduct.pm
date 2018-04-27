@@ -532,10 +532,7 @@ of possibly non-unique tuples.
 
 This source is in Github:
 
-	http://github.com/briandfoy/Set-CrossProduct
-
-If, for some reason, I disappear from the world, one of the other
-members of the project can shepherd this module appropriately.
+	http://github.com/briandfoy/set-crossproduct
 
 =head1 AUTHOR
 
