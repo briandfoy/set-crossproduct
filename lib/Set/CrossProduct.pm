@@ -203,7 +203,7 @@ sub new {
 		$self->{arrays}  = [ @$constructor_ref{ sort keys %$constructor_ref } ];
 		}
 	elsif( $ref_type eq ref [] ) {
-		$self->{labeled} = 1;
+		$self->{labeled} = 0;
 		$self->{arrays}  = $constructor_ref;
 		}
 	else {
