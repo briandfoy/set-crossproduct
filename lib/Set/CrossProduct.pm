@@ -142,7 +142,9 @@ code. Of course, your use is probably more interesting. :)
 =item * new( { LABEL => [ ... ], LABEL2 => [ ... ] } )
 
 Given arrays that represent some sets, return a C<Set::CrossProduct>
-instance that represents the cross product of those sets.
+instance that represents the cross product of those sets. If you don't
+provide at least two sets, C<new> returns undef and will emit a warning
+if warnings are enabled.
 
 You can create the sets in two different ways: unlabeled and labeled sets.
 
