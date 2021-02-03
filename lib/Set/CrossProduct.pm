@@ -2,7 +2,7 @@ package Set::CrossProduct;
 use strict;
 
 use warnings;
-no warnings;
+use warnings::register;
 
 our $VERSION = '2.004';
 
@@ -204,13 +204,18 @@ sub new {
 		$self->{arrays}  = $constructor_ref;
 		}
 	else {
+		warnings::warn( "Set::Crossproduct->new takes an array or hash reference" ) if warnings::enabled();
 		return;
 		}
 
 	my $array_ref = $self->{arrays};
-	return unless @$array_ref > 1;
+	unless( @$array_ref > 1 ) {
+		warnings::warn( "You need at least two sets for Set::CrossProduct to work" ) if warnings::enabled();
+		return;
+		}
 
 	foreach my $array ( @$array_ref ) {
+		warnings::warn( "Each array element or hash value needs to be an array reference" ) if warnings::enabled();
 		return unless ref $array eq ref [];
 		}
 
