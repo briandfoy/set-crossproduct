@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use warnings::register;
 
-our $VERSION = '2.004';
+our $VERSION = '2.005';
 
 =encoding utf8
 
