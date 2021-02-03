@@ -493,13 +493,13 @@ sub random {
 
 =item * combinations()
 
-Returns a reference to an array that contains all of the tuples
-of the cross product.  This can be quite large, so you might
-want to check the cardinality first. The array elements are the
-return values for C<get>.
+In scalar context, returns a reference to an array that contains all
+of the tuples of the cross product. In list context, it returns the
+list of all tuples. You should probably always use this in scalar
+context except for very low cardinalities to avoid huge return values.
 
-You should probably always use this in scalar context except for
-very low cardinalities to avoid huge return values.
+This can be quite large, so you might want to check the cardinality
+first. The array elements are the return values for C<get>.
 
 =back
 
