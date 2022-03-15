@@ -14,7 +14,7 @@ subtest warnings_off => sub {
 		Set::CrossProduct->new( [ [1,2,3] ] );
 		};
 	ok( ! defined $cross,  "A single set returns undef" );
-	ok( ! defined $string, "There is no warning when warnings are not enabled (good)" );
+	string_not_empty_or_undef( $string, "There is no warning when warnings are not enabled (good)" );
 	};
 
 subtest warnings_on => sub {
@@ -25,7 +25,7 @@ subtest warnings_on => sub {
 		Set::CrossProduct->new( [ [1,2,3] ] );
 		};
 	ok( ! defined $cross,  "A single set returns undef" );
-	ok(   defined $string, "There is a warning when warnings are enabled (good)" );
+	string_not_empty_or_undef( $string, "There is a warning when warnings are enabled (good)" );
 	};
 
 subtest not_array_refs => sub {
@@ -36,8 +36,13 @@ subtest not_array_refs => sub {
 		Set::CrossProduct->new( [ qw(a b) ] );
 		};
 	ok( ! defined $cross,  "A single set returns undef" );
-	ok(   defined $string, "There is a warning when warnings are enabled (good)" );
+	string_not_empty_or_undef( $string, "There is a warning when warnings are enabled (good)" );
 	like $string, qr/needs to be an array reference/, 'Warning matches the expected pattern';
 	};
+
+sub string_not_empty_or_undef {
+	my $rc = ( ! defined $_[0] ) || ( 0 < length $_[0] );
+	ok( $rc, $_[1] );
+	}
 
 done_testing();
