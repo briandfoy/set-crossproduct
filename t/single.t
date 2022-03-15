@@ -40,6 +40,9 @@ subtest not_array_refs => sub {
 	like $string, qr/needs to be an array reference/, 'Warning matches the expected pattern';
 	};
 
+# Perl might autovivify the value in a string filehandle's target, so
+# even with no output, it might turn from undef to the empty string
+#
 sub string_not_empty_or_undef {
 	my $rc = ( ! defined $_[0] ) || ( 0 < length $_[0] );
 	ok( $rc, $_[1] );
