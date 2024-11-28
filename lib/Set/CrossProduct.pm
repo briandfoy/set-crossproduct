@@ -246,6 +246,13 @@ sub new {
 			} 0 .. $#$array_ref
 		];
 
+	my $len_last = $#{ $self->{lengths} };
+	for( my $i  = 0; $i < $#{ $self->{counters} }; $i++ ) {
+		my @lengths = map { $_+1 } @{ $self->{lengths} }[$i+1 .. $len_last];
+		$self->{factors}[$i] += reduce { $a * $b } @lengths;
+		}
+	push @{ $self->{factors} }, 1;
+
 	bless $self, $class;
 
 	return $self;
@@ -511,6 +518,28 @@ sub nth {
 		} @{ $self->{info} };
 
 	return wantarray ? @tuple : \@tuple;
+	}
+
+=item * position()
+
+Returns the zero-based position in the iterator for the next tuple that
+C<get> will fetch. Before you fetch any tuple, the position is 0. After
+you have fetched all the tuples, this returns undef.
+
+=cut
+
+sub position {
+	my( $self ) = $_[0];
+	return if $self->{done};
+
+	my $len_last = $#{ $self->{lengths} };
+
+	my $sum = 0;
+	for( my $i  = 0; $i <= $#{ $self->{counters} }; $i++ ) {
+		$sum += $self->{counters}[$i] * $self->{factors}[$i];
+		}
+
+	return $sum;
 	}
 
 =item * previous()

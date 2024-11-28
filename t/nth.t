@@ -7,6 +7,7 @@ my $Class = 'Set::CrossProduct';
 
 subtest 'sanity' => sub {
 	use_ok( $Class ) or BAIL_OUT( "$Class did not compile" );
+	can_ok $Class, 'nth';
 	};
 
 subtest 'bad n' => sub {
