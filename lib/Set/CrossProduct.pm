@@ -4,7 +4,10 @@ use strict;
 use warnings;
 use warnings::register;
 
-our $VERSION = '2.009';
+use Carp qw(carp);
+use List::Util qw( reduce );
+
+our $VERSION = '3.000_001';
 
 =encoding utf8
 
@@ -37,8 +40,12 @@ Set::CrossProduct - work with the cross product of two or more sets
 	# the cursor
 	my $last_tuple       = $iterator->previous;
 
+	# get a particular tuple with affecting the iterator
+	# this is zero based
+	my $nth_tuple        = $iterator->nth($n);
+
 	# get a random tuple
-	my $tuple            = $iterator->random;
+	my $random_tuple     = $iterator->random;
 
 	# in list context returns a list of all tuples
 	my @tuples           = $iterator->combinations;
@@ -231,6 +238,14 @@ sub new {
 	$self->{done}     = grep( $_ == -1, @{ $self->{lengths} } )
 		? 1 : 0;
 
+	# stolen from Set::CartesianProduct::Lazy by Stephen R. Scaffidi
+	# https://github.com/hercynium/Set-CartesianProduct-Lazy
+	$self->{info}     = [
+		map {
+			[ $_, (scalar @{${ $self->{arrays} }[$_]}), reduce { $a * @$b } 1, @{ $self->{arrays} }[$_ + 1 .. $#{ $self->{arrays} }] ];
+			} 0 .. $#$array_ref
+		];
+
 	bless $self, $class;
 
 	return $self;
@@ -365,6 +380,9 @@ context except for very low cardinalities to avoid huge return values.
 This can be quite large, so you might want to check the cardinality
 first. The array elements are the return values for C<get>.
 
+This works by exhausting the iterator. After calling this, there will
+be no more tuples to C<get>. You can use C<reset_cursor> to start over.
+
 =cut
 
 sub combinations {
@@ -449,6 +467,50 @@ sub next {
 
 	if( wantarray ) { return (ref $next_ref eq ref []) ? @$next_ref : %$next_ref }
 	else            { return $next_ref }
+	}
+
+=item * nth(n)
+
+Get the tuple at position C<n> in the set (zero based). This does not
+advance or affect the iterator.
+
+C<n> must be a positive whole number less than the cardinality. Anything
+else
+
+=cut
+
+# stolen from Set::CartesianProduct::Lazy by Stephen R. Scaffidi
+# https://github.com/hercynium/Set-CartesianProduct-Lazy
+sub nth {
+	my($self, $n) = @_;
+
+	my $message = do {
+		my $guidance = 'It should be a positive whole number up to one less than the cardinality.';
+		if( @_ > 2 ) {
+			"too many arguments for nth(). $guidance";
+			}
+		elsif( ! defined $n ) {
+			"no or undefined argument for nth(). $guidance";
+			}
+		elsif( $n >= $self->cardinality ) {
+			sprintf "argument ($n) for nth() is too large for cardinality (%d). $guidance",
+				$self->cardinality;
+			}
+		elsif( $n =~ m/\D/ ) {
+			"argument ($n) for nth() is inappropriate. $guidance";
+			}
+		};
+	if( $message ) {
+		carp $message;
+		return;
+		}
+
+	my @tuple = map {
+		my ($set_num, $set_size, $factor) = @$_;
+		${ $self->{arrays} }[ $set_num ][ int( $n / $factor ) % $set_size ];
+		} @{ $self->{info} };
+
+	return wantarray ? @tuple : \@tuple;
 	}
 
 =item * previous()
@@ -569,6 +631,9 @@ This source is in Github:
 brian d foy, C<< <briandfoy@pobox.com> >>
 
 Matt Miller implemented the named sets feature.
+
+Stephen R. Scaffidi implemented the code for C<nth> in his
+L<Set::CartesianProduct::Lazy>, and I adpated it for this module.
 
 =head1 COPYRIGHT AND LICENSE
 
