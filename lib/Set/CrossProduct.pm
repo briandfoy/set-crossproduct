@@ -254,38 +254,21 @@ sub new {
 sub _decrement {
 	my $self = shift;
 
-	my $tail = $#{ $self->{counters} };
-
 	$self->{counters} = $self->_previous( $self->{counters} );
 	$self->{previous} = $self->_previous( $self->{counters} );
 
 	return 1;
 	}
 
-sub _find_ref {
-	my ($self, $which) = @_;
-
-	my $place_func =
-		  ($which eq 'next') ? sub { $self->{counters}[shift] }
-		: ($which eq 'prev') ? sub { $self->{previous}[shift] }
-		: ($which eq 'rand') ? sub { rand(1 + $self->{lengths}[shift]) }
-		:                      undef;
-
-	return unless $place_func;
-
-	my @indices = (0 .. $#{ $self->{arrays} });
-
-	if ($self->{labels}) {
-		 return +{ map {  $self->{labels}[$_] => ${ $self->{arrays}[$_] }[ $place_func->($_) ]  } @indices } }
-	else {
-		return [ map {  ${ $self->{arrays}[$_] }[ $place_func->($_) ]  } @indices ]
-		}
-	}
+sub _factors { @{ $_[0]{factors} } }
 
 sub _increment {
 	my $self = shift;
-
+no warnings;
+	# print STDERR "_increment: counters at start: @{$self->{counters}}\n";
+	# print STDERR "_increment: previous at start: @{$self->{previous}}\n";
 	$self->{previous} = [ @{$self->{counters}} ]; # need a deep copy
+	# print STDERR "_increment: previous after: @{$self->{previous}}\n";
 
 	my $tail = $#{ $self->{counters} };
 
@@ -314,7 +297,7 @@ sub _init {
 
 	$self->{counters} = [ map { 0 } @{ $self->{arrays} } ];
     $self->{lengths}  = [ map { $#{$_} } @{ $self->{arrays} } ];
-	$self->{previous} = [];
+	$self->{previous} = [ (undef) x @{ $self->{arrays} } ];
 	$self->{ungot}    = 1;
 	$self->{done}     = grep( $_ == -1, @{ $self->{lengths} } );
 
@@ -329,10 +312,24 @@ sub _init {
 	return $self;
 	}
 
-sub _previous {
-	my $self = shift;
+sub _label_tuple {
+	my( $self, $tuple ) = @_;
 
-	my $counters = $self->{counters};
+	unless( $self->{labeled} ) {
+		return wantarray ? @$tuple : $tuple;
+		}
+
+print "_label_tuple: " . Dumper($tuple);
+
+	my %hash;
+	@hash{ @{ $self->{labels} } } = @$tuple;
+
+	return wantarray ? %hash : \%hash;
+	}
+
+sub _previous {
+	my( $self, $counters)  = @_;
+	$counters = [ @$counters ];  # disconnect reference
 
 	my $tail = $#{ $counters };
 
@@ -440,16 +437,80 @@ list of key-value pairs in list context.
 
 sub get {
 	my $self = shift;
-
 	return if $self->done;
-
-	my $next_ref = $self->_find_ref('next');
-
+use Data::Dumper;
+	my $next_ref = $self->next;
+	print STDERR "get: next_ref: " . Dumper($next_ref);
 	$self->_increment;
 	$self->{ungot} = 0;
 
-	if( wantarray ) { return (ref $next_ref eq ref []) ? @$next_ref : %$next_ref }
-	else            { return $next_ref }
+	$next_ref;
+	}
+
+=item * jump_to(N)
+
+(new in 3.0)
+
+Moves the cursor such that the next call to C<get> will fetch tuple
+C<N>, which should be a positive whole number less than the cardinality.
+Invalid arguments return the empty list and warn.
+
+This works by doing the math to reset the cursor rather than iterating
+through the cursor to get to the right position. After calling C<jump_to($n)>,
+C<$position> should return the value of C<$n>.
+
+This returns the object itself to allow you to chain methods. In previous
+versions this returned C<1> (true). It still returns true, but just
+a different value for it.
+
+=cut
+
+sub jump_to {
+	my($self, $n) = @_;
+
+	my $message = do {
+		my $guidance = 'It should be a positive whole number up to one less than the cardinality.';
+		if( @_ > 2 ) {
+			"too many arguments for jump_to(). $guidance";
+			}
+		elsif( ! defined $n ) {
+			"no or undefined argument for jump_to(). $guidance";
+			}
+		elsif( $n >= $self->cardinality ) {
+			sprintf "argument ($n) for jump_to() is too large for cardinality (%d). $guidance",
+				$self->cardinality;
+			}
+		elsif( $n =~ m/\D/ ) {
+			"argument ($n) for jump_to() is inappropriate. $guidance";
+			}
+		};
+	if( $message ) {
+		carp $message;
+		return;
+		}
+
+	my $max = $self->cardinality;
+	my @positions = ();
+	my $working_n = $n;
+	foreach my $factor ( $self->_factors ) {
+		print STDERR "N: $working_n F: $factor\n";
+		if( $factor > $working_n ) {
+			push @positions, 0;
+			next;
+			}
+
+		my $int = int( $working_n / $factor );
+		$working_n -= $int * $factor;
+		print STDERR "\tint: $int n: $working_n\n";
+		push @positions, $int;
+		}
+
+print STDERR "jump_to: POSITIONS: @positions\n";
+
+	$self->{counters} = [@positions];
+	$self->{previous} = $self->_previous($self->{counters});
+
+	$self;
 	}
 
 =item * labeled()
@@ -472,21 +533,21 @@ the next tuple without affecting your position in the cross product.
 sub next {
 	my $self = shift;
 
-	return if $self->done;
+	# At end position returns undef
+	return unless defined $self->position;
 
-	my $next_ref = $self->_find_ref('next');
-
-	if( wantarray ) { return (ref $next_ref eq ref []) ? @$next_ref : %$next_ref }
-	else            { return $next_ref }
+	$self->nth( $self->position );
 	}
 
 =item * nth(n)
+
+(new in 3.0)
 
 Get the tuple at position C<n> in the set (zero based). This does not
 advance or affect the iterator.
 
 C<n> must be a positive whole number less than the cardinality. Anything
-else
+else warns and returns undef.
 
 =cut
 
@@ -521,10 +582,14 @@ sub nth {
 		${ $self->{arrays} }[ $set_num ][ int( $n / $factor ) % $set_size ];
 		} @{ $self->{info} };
 
-	return wantarray ? @tuple : \@tuple;
+	my $tuple = $self->_label_tuple(\@tuple);
+
+	return wantarray ? @$tuple : $tuple;
 	}
 
 =item * position()
+
+(new in 3.0)
 
 Returns the zero-based position in the iterator for the next tuple that
 C<get> will fetch. Before you fetch any tuple, the position is 0. After
@@ -556,10 +621,12 @@ the previous tuple without affecting your position in the cross product.
 sub previous {
 	my $self = shift;
 
-	my $prev_ref = $self->_find_ref('prev');
+	if( $self->position == 0 ) {
+		carp "Can't call previous at the first tuple of the cross product";
+		return;
+		}
 
-	if( wantarray ) { return (ref $prev_ref eq ref []) ? @$prev_ref : %$prev_ref }
-	else            { return $prev_ref }
+	$self->nth( $self->done ? $self->cardinality - 1 : $self->position - 1 );
 	}
 
 =item * random()
@@ -580,7 +647,12 @@ sub random {
 
 =item * reset_cursor()
 
-Return the pointer to the first element of the cross product.
+Return the cursor to the first element of the cross product. The next
+call to C<get> will fetch the first tuple.
+
+This returns the object itself to allow you to chain methods. In previous
+versions this returned C<1> (true). It still returns true, but just
+a different value for it.
 
 =cut
 
@@ -590,7 +662,7 @@ sub reset_cursor {
 
 	$self->_init;
 
-	return 1;
+	return $self;
 	}
 
 =item * unget()
@@ -601,6 +673,10 @@ next value and put it back if you do not like it.
 
 You can only do this for the previous tuple.  C<unget> does not do
 multiple levels of unget.
+
+This returns the object itself to allow you to chain methods. In previous
+versions this returned C<1> (true). It still returns true, but just
+a different value for it.
 
 =cut
 
@@ -617,7 +693,7 @@ sub unget {
 	# so unset it.
 	$self->{done}  = 0;
 
-	return 1;
+	return $self;
 	}
 
 =back

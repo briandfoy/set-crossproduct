@@ -66,9 +66,6 @@ subtest 'two sets' => sub {
 
 	is $cross->cardinality, 9, "Cardinality is expected";
 
-
-
-
 	my @table = (
 		[ 0, [ 1, 'a' ] ],
 		[ 3, [ 2, 'a' ] ],
@@ -123,7 +120,7 @@ subtest 'four sets' => sub {
 		}
 	};
 
-subtest 'itertor' => sub {
+subtest 'iterator' => sub {
 	my $cross = $Class->new([ [1,2,3], [qw(a b c)], [qw(red blue green)], [qw(cat dog)] ]);
 	isa_ok $cross, $Class;
 
