@@ -320,7 +320,7 @@ sub _init {
 
 	# stolen from Set::CartesianProduct::Lazy by Stephen R. Scaffidi
 	# https://github.com/hercynium/Set-CartesianProduct-Lazy
-	$self->{info}     = [
+	$self->{info} = [
 		map {
 			[ $_, (scalar @{${ $self->{arrays} }[$_]}), reduce { $a * @$b } 1, @{ $self->{arrays} }[$_ + 1 .. $#{ $self->{arrays} }] ];
 			} 0 .. $#{ $self->{arrays} }
