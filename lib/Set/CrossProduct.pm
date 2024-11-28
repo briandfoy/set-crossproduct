@@ -201,7 +201,7 @@ sub new {
 
 	my $ref_type = ref $constructor_ref;
 
-	my $self = {};
+	my $self = bless {}, $class;
 
 	if( $ref_type eq ref {} ) {
 		$self->{labeled} = 1;
@@ -230,21 +230,7 @@ sub new {
 			}
 		}
 
-	$self->{counters} = [ map { 0 }      @$array_ref ];
-	$self->{lengths}  = [ map { $#{$_} } @$array_ref ];
-	$self->{previous} = [];
-	$self->{ungot}    = 1;
-
-	$self->{done}     = grep( $_ == -1, @{ $self->{lengths} } )
-		? 1 : 0;
-
-	# stolen from Set::CartesianProduct::Lazy by Stephen R. Scaffidi
-	# https://github.com/hercynium/Set-CartesianProduct-Lazy
-	$self->{info}     = [
-		map {
-			[ $_, (scalar @{${ $self->{arrays} }[$_]}), reduce { $a * @$b } 1, @{ $self->{arrays} }[$_ + 1 .. $#{ $self->{arrays} }] ];
-			} 0 .. $#$array_ref
-		];
+	$self->_init;
 
 	my $len_last = $#{ $self->{lengths} };
 	for( my $i  = 0; $i < $#{ $self->{counters} }; $i++ ) {
@@ -252,8 +238,6 @@ sub new {
 		$self->{factors}[$i] += reduce { $a * $b } @lengths;
 		}
 	push @{ $self->{factors} }, 1;
-
-	bless $self, $class;
 
 	return $self;
 	}
@@ -323,6 +307,26 @@ sub _increment {
 		}
 
 	return 1;
+	}
+
+sub _init {
+	my( $self ) = @_;
+
+	$self->{counters} = [ map { 0 } @{ $self->{arrays} } ];
+    $self->{lengths}  = [ map { $#{$_} } @{ $self->{arrays} } ];
+	$self->{previous} = [];
+	$self->{ungot}    = 1;
+	$self->{done}     = grep( $_ == -1, @{ $self->{lengths} } );
+
+	# stolen from Set::CartesianProduct::Lazy by Stephen R. Scaffidi
+	# https://github.com/hercynium/Set-CartesianProduct-Lazy
+	$self->{info}     = [
+		map {
+			[ $_, (scalar @{${ $self->{arrays} }[$_]}), reduce { $a * @$b } 1, @{ $self->{arrays} }[$_ + 1 .. $#{ $self->{arrays} }] ];
+			} 0 .. $#{ $self->{arrays} }
+		];
+
+	return $self;
 	}
 
 sub _previous {
@@ -581,12 +585,10 @@ Return the pointer to the first element of the cross product.
 =cut
 
 sub reset_cursor {
-	my $self = shift;
+	my( $self, $position ) = @_;
+	$position = 0 unless defined $position;
 
-	$self->{counters} = [ map { 0 } @{ $self->{counters} } ];
-	$self->{previous} = [];
-	$self->{ungot}    = 1;
-	$self->{done}     = 0;
+	$self->_init;
 
 	return 1;
 	}
