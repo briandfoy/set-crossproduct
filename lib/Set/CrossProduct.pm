@@ -490,7 +490,6 @@ sub jump_to {
 	my @positions = ();
 	my $working_n = $n;
 	foreach my $factor ( $self->_factors ) {
-		print STDERR "N: $working_n F: $factor\n";
 		if( $factor > $working_n ) {
 			push @positions, 0;
 			next;
@@ -498,11 +497,8 @@ sub jump_to {
 
 		my $int = int( $working_n / $factor );
 		$working_n -= $int * $factor;
-		print STDERR "\tint: $int n: $working_n\n";
 		push @positions, $int;
 		}
-
-print STDERR "jump_to: POSITIONS: @positions\n";
 
 	$self->{counters} = [@positions];
 	$self->{previous} = $self->_previous($self->{counters});
