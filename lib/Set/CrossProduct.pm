@@ -695,7 +695,7 @@ brian d foy, C<< <briandfoy@pobox.com> >>
 Matt Miller implemented the named sets feature.
 
 Stephen R. Scaffidi implemented the code for C<nth> in his
-L<Set::CartesianProduct::Lazy>, and I adpated it for this module.
+L<Set::CartesianProduct::Lazy>, and I adapted it for this module.
 
 =head1 COPYRIGHT AND LICENSE
 
