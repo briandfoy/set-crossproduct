@@ -65,8 +65,6 @@ subtest 'bad n' => sub {
 		};
 	};
 
-# print "COMBOS: " . Dumper( [ map { [ $b++, $_ ] } $cross->combinations ] );
-
 subtest 'jump to middle' => sub {
 	my $n = 53;
 	is $cross->position, 0, 'initial position is zero';
@@ -106,6 +104,8 @@ subtest 'jump to start' => sub {
 done_testing();
 
 __END__
+# print STDERR "COMBOS: " . Dumper( [ map { [ $b++, $_ ] } $cross->combinations ] );
+
 COMBOS: $VAR1 = [
           [
             0,

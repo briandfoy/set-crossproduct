@@ -319,8 +319,6 @@ sub _label_tuple {
 		return wantarray ? @$tuple : $tuple;
 		}
 
-print "_label_tuple: " . Dumper($tuple);
-
 	my %hash;
 	@hash{ @{ $self->{labels} } } = @$tuple;
 
@@ -438,9 +436,8 @@ list of key-value pairs in list context.
 sub get {
 	my $self = shift;
 	return if $self->done;
-use Data::Dumper;
+
 	my $next_ref = $self->next;
-	print STDERR "get: next_ref: " . Dumper($next_ref);
 	$self->_increment;
 	$self->{ungot} = 0;
 
