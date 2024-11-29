@@ -3,16 +3,16 @@ use warnings;
 
 use Test::More 0.95;
 use Data::Dumper;
-my $Class = 'Set::CrossProduct';
+my $class = 'Set::CrossProduct';
 
 subtest 'sanity' => sub {
-	use_ok( $Class ) or BAIL_OUT( "$Class did not compile" );
-	can_ok $Class, 'nth';
+	use_ok( $class ) or BAIL_OUT( "$class did not compile" );
+	can_ok $class, 'nth';
 	};
 
 subtest 'bad n' => sub {
-	my $cross = $Class->new( [ [1,2,3], [qw(a b c)] ] );
-	isa_ok $cross, $Class;
+	my $cross = $class->new( [ [1,2,3], [qw(a b c)] ] );
+	isa_ok $cross, $class;
 
 	my $warning;
 	local $SIG{__WARN__} = sub { $warning = $_[0] };
@@ -61,8 +61,8 @@ subtest 'bad n' => sub {
 	};
 
 subtest 'two sets' => sub {
-	my $cross = $Class->new( [ [1,2,3], [qw(a b c)] ] );
-	isa_ok $cross, $Class;
+	my $cross = $class->new( [ [1,2,3], [qw(a b c)] ] );
+	isa_ok $cross, $class;
 
 	is $cross->cardinality, 9, "Cardinality is expected";
 
@@ -78,8 +78,8 @@ subtest 'two sets' => sub {
 	};
 
 subtest 'two sets labeled' => sub {
-	my $cross = $Class->new( { number => [1,2,3], letter => [qw(a b c)] } );
-	isa_ok $cross, $Class;
+	my $cross = $class->new( { number => [1,2,3], letter => [qw(a b c)] } );
+	isa_ok $cross, $class;
 
 	is $cross->cardinality, 9, "Cardinality is expected";
 
@@ -97,10 +97,9 @@ subtest 'two sets labeled' => sub {
 		}
 	};
 
-
 subtest 'three sets' => sub {
-	my $cross = $Class->new([ [1,2,3], [qw(a b c)], [qw(red blue green)] ]);
-	isa_ok $cross, $Class;
+	my $cross = $class->new([ [1,2,3], [qw(a b c)], [qw(red blue green)] ]);
+	isa_ok $cross, $class;
 
 	is( $cross->cardinality, 27, "Cardinality is expected" );
 
@@ -120,8 +119,8 @@ subtest 'three sets' => sub {
 	};
 
 subtest 'four sets' => sub {
-	my $cross = $Class->new([ [1,2,3], [qw(a b c)], [qw(red blue green)], [qw(cat dog)] ]);
-	isa_ok $cross, $Class;
+	my $cross = $class->new([ [1,2,3], [qw(a b c)], [qw(red blue green)], [qw(cat dog)] ]);
+	isa_ok $cross, $class;
 
 	is( $cross->cardinality, 54, "Cardinality is expected" );
 
@@ -142,8 +141,8 @@ subtest 'four sets' => sub {
 	};
 
 subtest 'iterator' => sub {
-	my $cross = $Class->new([ [1,2,3], [qw(a b c)], [qw(red blue green)], [qw(cat dog)] ]);
-	isa_ok $cross, $Class;
+	my $cross = $class->new([ [1,2,3], [qw(a b c)], [qw(red blue green)], [qw(cat dog)] ]);
+	isa_ok $cross, $class;
 
 	is( $cross->cardinality, 54, "Cardinality is expected" );
 
