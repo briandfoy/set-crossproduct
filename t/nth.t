@@ -1,12 +1,11 @@
 use strict;
 use warnings;
 
-use Test::More 0.95;
-use Data::Dumper;
+use Test::More 1;
 my $class = 'Set::CrossProduct';
 
 subtest 'sanity' => sub {
-	use_ok( $class ) or BAIL_OUT( "$class did not compile" );
+	use_ok $class or BAIL_OUT( "$class did not compile" );
 	can_ok $class, 'nth';
 	};
 

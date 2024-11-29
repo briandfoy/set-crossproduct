@@ -2,7 +2,6 @@ use strict;
 use warnings;
 
 use Test::More 1;
-use Data::Dumper;
 my $class = 'Set::CrossProduct';
 
 subtest 'sanity' => sub {

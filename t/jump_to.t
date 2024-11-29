@@ -2,7 +2,6 @@ use strict;
 use warnings;
 
 use Test::More 1;
-use Data::Dumper;
 
 my $class  = 'Set::CrossProduct';
 my $method = 'jump_to';
@@ -90,11 +89,15 @@ subtest 'jump to start' => sub {
 	isa_ok $cross_again, $class;
 	is $cross->position, $n, 'position reports same value of n';
 
-	is $cross->previous, undef, 'previous before get returns empty tuple';
+	subtest 'previous at start' => sub {
+		my $warning;
+		local $SIG{__WARN__} = sub { $warning = $_[0] };
+		is $cross->previous, undef, 'previous before get returns empty tuple';
+		like $warning, qr/previous at/, 'expected error message';
+		};
 
 	is_deeply scalar $cross->get, [ qw(a x red 1) ], 'get returns right tuple';
 	is $cross->position, $n + 1, 'position reports value of n + 1';
-	diag( "diag: positions: <@{$cross->{previous}}>" );
 
 	is_deeply scalar $cross->previous, [ qw(a x red 1) ], 'previous after get returns the same tuple';
 	is_deeply scalar $cross->next, [ qw(a x red 2) ], 'next returns right tuple';

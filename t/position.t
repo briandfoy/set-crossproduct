@@ -1,18 +1,20 @@
 use strict;
 use warnings;
 
-use Test::More 0.95;
-use Data::Dumper;
-my $Class = 'Set::CrossProduct';
+use Test::More 1;
+my $class = 'Set::CrossProduct';
 my $method = 'position';
 
 subtest 'sanity' => sub {
-	use_ok( $Class ) or BAIL_OUT( "$Class did not compile" );
-	can_ok $Class, $method;
+	use_ok( $class ) or BAIL_OUT( "$class did not compile" );
+	can_ok $class, $method;
 	};
 
-my $cross = $Class->new( [ [1,2,3], [qw(a b)], [qw(x y z)], [qw(red blue green yellow)] ] );
-isa_ok $cross, $Class;
+my $cross;
+subtest 'construct' => sub {
+	$cross = $class->new( [ [1,2,3], [qw(a b)], [qw(x y z)], [qw(red blue green yellow)] ] );
+	isa_ok $cross, $class;
+	};
 
 subtest 'start' => sub {
 	is $cross->position, 0, 'position is 0 before first fetch';
