@@ -77,6 +77,27 @@ subtest 'two sets' => sub {
 		}
 	};
 
+subtest 'two sets labeled' => sub {
+	my $cross = $Class->new( { number => [1,2,3], letter => [qw(a b c)] } );
+	isa_ok $cross, $Class;
+
+	is $cross->cardinality, 9, "Cardinality is expected";
+
+	my @table = (
+		[ 0, { number => 1, letter => 'a' } ],
+		[ 3, { number => 1, letter => 'b' } ],
+		);
+
+	foreach my $i ( 0 .. $#table ) {
+		subtest "row $i" => sub {
+			my $tuple = $cross->nth( $table[$i][0] );
+			isa_ok $tuple, ref {}, '$tuple';
+			is_deeply $table[$i][1], $tuple, 'nth tuple is expected';
+			};
+		}
+	};
+
+
 subtest 'three sets' => sub {
 	my $cross = $Class->new([ [1,2,3], [qw(a b c)], [qw(red blue green)] ]);
 	isa_ok $cross, $Class;
