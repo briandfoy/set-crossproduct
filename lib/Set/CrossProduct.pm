@@ -251,20 +251,11 @@ sub new {
 =cut
 
 
-sub _decrement {
-	my $self = shift;
-
-	$self->{counters} = $self->_previous( $self->{counters} );
-	$self->{previous} = $self->_previous( $self->{counters} );
-
-	return 1;
-	}
-
 sub _factors { @{ $_[0]{factors} } }
 
 sub _increment {
 	my $self = shift;
-no warnings;
+
 	# print STDERR "_increment: counters at start: @{$self->{counters}}\n";
 	# print STDERR "_increment: previous at start: @{$self->{previous}}\n";
 	$self->{previous} = [ @{$self->{counters}} ]; # need a deep copy
@@ -297,7 +288,6 @@ sub _init {
 
 	$self->{counters} = [ map { 0 } @{ $self->{arrays} } ];
     $self->{lengths}  = [ map { $#{$_} } @{ $self->{arrays} } ];
-	$self->{previous} = [ (undef) x @{ $self->{arrays} } ];
 	$self->{ungot}    = 1;
 	$self->{done}     = grep( $_ == -1, @{ $self->{lengths} } );
 
@@ -323,33 +313,6 @@ sub _label_tuple {
 	@hash{ @{ $self->{labels} } } = @$tuple;
 
 	return wantarray ? %hash : \%hash;
-	}
-
-sub _previous {
-	my( $self, $counters)  = @_;
-	$counters = [ @$counters ];  # disconnect reference
-
-	my $tail = $#{ $counters };
-
-	return [] unless grep { $_ } @$counters;
-
-	COUNTERS: {
-		if( $counters->[$tail] == 0 ) {
-			$counters->[$tail] = $self->{lengths}[$tail];
-			$tail--;
-
-			if( $tail == 0 and $counters->[$tail] == 0) {
-				$counters = [ map { 0 } 0 .. $tail ];
-				last COUNTERS;
-				}
-
-			redo COUNTERS;
-			}
-
-		$counters->[$tail]--;
-		}
-
-	return $counters;
 	}
 
 =item * cardinality()
@@ -501,7 +464,6 @@ sub jump_to {
 		}
 
 	$self->{counters} = [@positions];
-	$self->{previous} = $self->_previous($self->{counters});
 
 	$self;
 	}
