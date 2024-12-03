@@ -119,7 +119,7 @@ too.
 
 In this case, A x B is the empty set, so you'll get no tuples.
 
-This module combines the arrays that give to it to create this
+This module combines the arrays that you give to it to create this
 cross product, then allows you to access the elements of the
 cross product in sequence, or to get all of the elements at
 once. Be warned! The cardinality of the cross product, that is,
