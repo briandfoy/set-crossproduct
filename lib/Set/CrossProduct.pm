@@ -689,9 +689,9 @@ of possibly non-unique tuples.
 	# the coderef.
 	$set->apply( CODEREF );
 
-=head1 BUGS
+=head1 ISSUES
 
-* none that I know about (yet)
+Report an problems to L<http://github.com/briandfoy/set-crossproduct/issues>.
 
 =head1 SOURCE AVAILABILITY
 
