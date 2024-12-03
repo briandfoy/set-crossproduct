@@ -18,40 +18,40 @@ Set::CrossProduct - work with the cross product of two or more sets
 =head1 SYNOPSIS
 
 	# unlabeled sets
-	my $iterator = Set::CrossProduct->new( ARRAY_OF_ARRAYS );
+	my $cross = Set::CrossProduct->new( ARRAY_OF_ARRAYS );
 
 	# or labeled sets where hash keys are the set names
-	my $iterator = Set::CrossProduct->new( HASH_OF_ARRAYS );
+	my $cross = Set::CrossProduct->new( HASH_OF_ARRAYS );
 
 	# get the number of tuples
-	my $number_of_tuples = $iterator->cardinality;
+	my $number_of_tuples = $cross->cardinality;
 
 	# get the next tuple
-	my $tuple            = $iterator->get;
+	my $tuple            = $cross->get;
 
 	# move back one position
-	my $tuple            = $iterator->unget;
+	my $tuple            = $cross->unget;
 
 	# get the next tuple without resetting
 	# the cursor (peek at it)
-	my $next_tuple       = $iterator->next;
+	my $next_tuple       = $cross->next;
 
 	# get the previous tuple without resetting
 	# the cursor
-	my $last_tuple       = $iterator->previous;
+	my $last_tuple       = $cross->previous;
 
-	# get a particular tuple with affecting the iterator
+	# get a particular tuple with affecting the cursor
 	# this is zero based
-	my $nth_tuple        = $iterator->nth($n);
+	my $nth_tuple        = $cross->nth($n);
 
 	# get a random tuple
-	my $random_tuple     = $iterator->random;
+	my $random_tuple     = $cross->random;
 
 	# in list context returns a list of all tuples
-	my @tuples           = $iterator->combinations;
+	my @tuples           = $cross->combinations;
 
 	# in scalar context returns an array reference to all tuples
-	my $tuples           = $iterator->combinations;
+	my $tuples           = $cross->combinations;
 
 
 =head1 DESCRIPTION
@@ -413,11 +413,14 @@ sub get {
 
 Moves the cursor such that the next call to C<get> will fetch tuple
 C<N>, which should be a positive whole number less than the cardinality.
+Remember that everything is zero-based.
+
 Invalid arguments return the empty list and warn.
 
 This works by doing the math to reset the cursor rather than iterating
-through the cursor to get to the right position. After calling C<jump_to($n)>,
-C<$position> should return the value of C<$n>.
+through the cursor to get to the right position. You can jump to any
+position, including ones before the current cursor. After calling
+C<jump_to($n)>, C<$position> should return the value of C<$n>.
 
 This returns the object itself to allow you to chain methods. In previous
 versions this returned C<1> (true). It still returns true, but just
@@ -470,9 +473,12 @@ sub jump_to {
 
 =item * labeled()
 
-Return true if the sets are labeled (i.e. you made the object from
-a hash ref). Returns false otherwise. You might use this to figure out
-what sort of value C<get> will return.
+Return true if the sets are labeled (i.e. you made the object from a
+hash ref). Returns false otherwise.
+
+You might use this to figure out what sort of value C<get> will
+return. When the tuple is labeled, you get hash refs. Otherwise, you
+get array refs.
 
 =cut
 
@@ -480,8 +486,11 @@ sub labeled { !! $_[0]->{labeled} }
 
 =item * next()
 
-Like C<get>, but does not move the pointer.  This way you can look at
+Like C<get>, but does not move the cursor. This way you can look at
 the next tuple without affecting your position in the cross product.
+
+Since this does not move the cursor, repeated calls to C<next> will
+return the same tuple.
 
 =cut
 
@@ -499,10 +508,11 @@ sub next {
 (new in 3.0)
 
 Get the tuple at position C<n> in the set (zero based). This does not
-advance or affect the iterator.
+advance or affect the cursor. C<n> must be a positive whole number
+less than the cardinality. Anything else warns and returns undef.
 
-C<n> must be a positive whole number less than the cardinality. Anything
-else warns and returns undef.
+This was largely stolen from L<Set::CartesianProduct::Lazy> by
+Stephen R. Scaffidi.
 
 =cut
 
@@ -546,9 +556,10 @@ sub nth {
 
 (new in 3.0)
 
-Returns the zero-based position in the iterator for the next tuple that
-C<get> will fetch. Before you fetch any tuple, the position is 0. After
-you have fetched all the tuples, this returns undef.
+Returns the zero-based position of the cursor. This is the same as the
+position for the next tuple that C<get> will fetch. Before you fetch
+any tuple, the position is 0. After you have fetched all the tuples,
+C<position> returns undef.
 
 =cut
 
@@ -568,7 +579,7 @@ sub position {
 
 =item * previous()
 
-Like C<get>, but does not move the pointer.  This way you can look at
+Like C<get>, but does not move the cursor.  This way you can look at
 the previous tuple without affecting your position in the cross product.
 
 =cut
