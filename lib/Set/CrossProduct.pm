@@ -7,7 +7,7 @@ use warnings::register;
 use Carp qw(carp);
 use List::Util qw( reduce );
 
-our $VERSION = '3.000_001';
+our $VERSION = '3.001';
 
 =encoding utf8
 
