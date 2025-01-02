@@ -9,6 +9,7 @@ MANIFEST			This list of files
 MANIFEST.SKIP
 README.pod
 script/cross
+SECURITY.md
 t/empty_set.t
 t/error.t
 t/jump_to.t
