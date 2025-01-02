@@ -83,12 +83,6 @@ the source repository:
 If you find a problem, file a ticket in the L<issue
 tracker|https://github.com/briandfoy/set-crossproduct/issues>:
 
-=over 4
-
-=item *	L<https://github.com/briandfoy/set-crossproduct/issues>
-
-=back
-
 There are also backup repositories hosted on other services. These
 reflect the state of the main repo and exist only for redundancy:
 
@@ -101,6 +95,20 @@ reflect the state of the main repo and exist only for redundancy:
 =item * L<https://codeberg.org/briandfoy/set-crossproduct>
 
 =back
+
+=head2 GitHub Attestations
+
+This distribution now uses
+L<GitHub Attestations|https://github.blog/2024-05-02-introducing-artifact-attestations-now-in-public-beta/>,
+which allow you to verify that the archive file you have was made from
+the official repo.
+
+You need a GitHub account and the L<gh tool|https://github.com/larsks/ghcli>.
+
+	# download the distro file from GitHub, MetaCPAN, or a CPAN mirror
+	$ gh auth login
+	...follow instructions...
+	$ gh attestation verify Set-CrossProduct-3.001.tar.gz --owner briandfoy
 
 =head2 Getting help
 
